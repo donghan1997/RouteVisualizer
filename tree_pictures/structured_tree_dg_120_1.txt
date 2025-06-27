@@ -1,0 +1,865 @@
+================================================================================
+SIMPLIFIED Tree Information for dg_120_1
+================================================================================
+Total nodes: 31
+Optimal k value: 0.700
+Good estimate ratio: 0.867
+
+NOTE: SIMPLIFIED approach using only basic formula: 2^(G/(k*r))
+- No children: estimated_size = 1
+- One child: r = child_gain
+- Two children: r = sqrt(gain1 * gain2)
+- Multiple children: r = geometric_mean(all_positive_gains)
+- All cases: est_size = 2^(G/(k*r)) (no special cases for gain > G)
+- Good estimate criterion: 0.5 ≤ est/real ≤ 2.0 (excluding trivial nodes)
+
+Estimation Quality Summary:
+  Total nodes: 31
+  Trivial nodes (real=1): 16
+  Non-trivial nodes: 15
+  Valid comparisons: 15
+  Good estimates: 13
+  Good estimate ratio: 0.867
+  Average est/real ratio: 0.858
+  Median est/real ratio: 0.664
+
+Summary by Level:
+  Level 0: 1 nodes, avg r = 15.671630 (1 nodes with r)
+    avg est_size = 19.36, avg real_size = 31.00
+  Level 1: 2 nodes, avg r = 11.571703 (2 nodes with r)
+    avg est_size = 30.48, avg real_size = 15.00
+  Level 2: 4 nodes, avg r = 8.866348 (3 nodes with r)
+    avg est_size = 7.72, avg real_size = 7.00
+  Level 3: 6 nodes, avg r = 10.027736 (3 nodes with r)
+    avg est_size = 2.70, avg real_size = 4.00
+  Level 4: 6 nodes, avg r = 8.282266 (3 nodes with r)
+    avg est_size = 2.86, avg real_size = 3.00
+  Level 5: 6 nodes, avg r = 11.232520 (2 nodes with r)
+    avg est_size = 1.92, avg real_size = 2.00
+  Level 6: 4 nodes, avg r = 16.687121 (1 nodes with r)
+    avg est_size = 1.30, avg real_size = 1.50
+  Level 7: 2 nodes, avg r = N/A (0 nodes with r)
+    avg est_size = 1.00, avg real_size = 1.00
+
+LEVEL 0:
+--------------------
+Node 0 (Level 0):
+  Parent: None
+  Children: [1, 2]
+  Real Subtree Count: 31
+  Estimated Subtree Size: 19.36
+  Est/Real Ratio: 0.625
+  Good Estimate: True
+  Node-specific r: 15.671630
+  k*r: 10.970141
+  G (Optimality Gap): 46.900000
+  Node LB Gain: 20326.100000
+  Node Gap: 46.900000 (feasible)
+  Children LB Gains:
+    Child 1: 30.700000
+    Child 2: 8.000000
+  Tree Size: 0
+  Has Edge Evaluation Marker: True
+  Initial LB: 0.000000
+  Final LB: 20326.100000
+  UB: 20373.000000
+  Gap: 0.2302%
+  Value: 0.0
+  Branches (0):
+
+
+LEVEL 1:
+--------------------
+Node 1 (Level 1):
+  Parent: 0
+  Children: [3, 4]
+  Real Subtree Count: 5
+  Estimated Subtree Size: 3.24
+  Est/Real Ratio: 0.648
+  Good Estimate: True
+  Node-specific r: 13.645512
+  k*r: 9.551858
+  G (Optimality Gap): 16.200000
+  Node LB Gain: 30.700000
+  Node Gap: 16.200000 (feasible)
+  Children LB Gains:
+    Child 3: 19.600000
+    Child 4: 9.500000
+  Tree Size: 1
+  Has Edge Evaluation Marker: True
+  Initial LB: 20326.100000
+  Final LB: 20356.800000
+  UB: 20373.000000
+  Gap: 0.0795%
+  Value: 20326.1
+  Branches (1):
+    └─ 1. Edge 101-114: +
+
+Node 2 (Level 1):
+  Parent: 0
+  Children: [5, 6]
+  Real Subtree Count: 25
+  Estimated Subtree Size: 57.72
+  Est/Real Ratio: 2.309
+  Good Estimate: False
+  Node-specific r: 9.497895
+  k*r: 6.648526
+  G (Optimality Gap): 38.900000
+  Node LB Gain: 8.000000
+  Node Gap: 38.900000 (feasible)
+  Children LB Gains:
+    Child 5: 29.100000
+    Child 6: 3.100000
+  Tree Size: 2
+  Has Edge Evaluation Marker: True
+  Initial LB: 20326.100000
+  Final LB: 20334.100000
+  UB: 20373.000000
+  Gap: 0.1909%
+  Value: 20326.1
+  Branches (1):
+    └─ 1. Edge 101-114: -
+
+
+LEVEL 2:
+--------------------
+Node 3 (Level 2):
+  Parent: 1
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -3.400000
+  Node LB Gain: 19.600000
+  Node Gap: -3.400000 (infeasible)
+  Tree Size: 11
+  Has Edge Evaluation Marker: False
+  Initial LB: 20356.800000
+  Final LB: 20376.400000
+  UB: 20373.000000
+  Gap: -0.0167%
+  Value: 20356.8
+  Branches (2):
+    ├─ 1. Edge 101-114: +
+    └─ 2. Edge 54-86: +
+
+Node 4 (Level 2):
+  Parent: 1
+  Children: [25, 26]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 2.26
+  Est/Real Ratio: 0.755
+  Good Estimate: True
+  Node-specific r: 8.116650
+  k*r: 5.681655
+  G (Optimality Gap): 6.700000
+  Node LB Gain: 9.500000
+  Node Gap: 6.700000 (feasible)
+  Children LB Gains:
+    Child 25: 6.100000
+    Child 26: 10.800000
+  Tree Size: 10
+  Has Edge Evaluation Marker: True
+  Initial LB: 20356.800000
+  Final LB: 20366.300000
+  UB: 20373.000000
+  Gap: 0.0329%
+  Value: 20356.8
+  Branches (2):
+    ├─ 1. Edge 101-114: +
+    └─ 2. Edge 54-86: -
+
+Node 5 (Level 2):
+  Parent: 2
+  Children: [7, 8]
+  Real Subtree Count: 5
+  Estimated Subtree Size: 3.78
+  Est/Real Ratio: 0.755
+  Good Estimate: True
+  Node-specific r: 7.302055
+  k*r: 5.111438
+  G (Optimality Gap): 9.800000
+  Node LB Gain: 29.100000
+  Node Gap: 9.800000 (feasible)
+  Children LB Gains:
+    Child 7: 8.600000
+    Child 8: 6.200000
+  Tree Size: 3
+  Has Edge Evaluation Marker: True
+  Initial LB: 20334.100000
+  Final LB: 20363.200000
+  UB: 20373.000000
+  Gap: 0.0481%
+  Value: 20334.1
+  Branches (2):
+    ├─ 1. Edge 101-114: -
+    └─ 2. Edge 54-86: +
+
+Node 6 (Level 2):
+  Parent: 2
+  Children: [9, 10]
+  Real Subtree Count: 19
+  Estimated Subtree Size: 23.82
+  Est/Real Ratio: 1.254
+  Good Estimate: True
+  Node-specific r: 11.180340
+  k*r: 7.826238
+  G (Optimality Gap): 35.800000
+  Node LB Gain: 3.100000
+  Node Gap: 35.800000 (feasible)
+  Children LB Gains:
+    Child 9: 25.000000
+    Child 10: 5.000000
+  Tree Size: 4
+  Has Edge Evaluation Marker: True
+  Initial LB: 20334.100000
+  Final LB: 20337.200000
+  UB: 20373.000000
+  Gap: 0.1757%
+  Value: 20334.1
+  Branches (2):
+    ├─ 1. Edge 101-114: -
+    └─ 2. Edge 54-86: -
+
+
+LEVEL 3:
+--------------------
+Node 25 (Level 3):
+  Parent: 4
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -0.400000
+  Node LB Gain: 6.100000
+  Node Gap: -0.400000 (infeasible)
+  Tree Size: 7
+  Has Edge Evaluation Marker: False
+  Initial LB: 20366.300000
+  Final LB: 20372.400000
+  UB: 20372.000000
+  Gap: -0.0020%
+  Value: 20366.3
+  Branches (3):
+    ├─ 1. Edge 101-114: +
+    ├─ 2. Edge 54-86: -
+    └─ 3. Edge 59-114: +
+
+Node 26 (Level 3):
+  Parent: 4
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -5.100000
+  Node LB Gain: 10.800000
+  Node Gap: -5.100000 (infeasible)
+  Tree Size: 6
+  Has Edge Evaluation Marker: False
+  Initial LB: 20366.300000
+  Final LB: 20377.100000
+  UB: 20372.000000
+  Gap: -0.0250%
+  Value: 20366.3
+  Branches (3):
+    ├─ 1. Edge 101-114: +
+    ├─ 2. Edge 54-86: -
+    └─ 3. Edge 59-114: -
+
+Node 7 (Level 3):
+  Parent: 5
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): 0.200000
+  Node LB Gain: 8.600000
+  Node Gap: 0.200000 (feasible)
+  Tree Size: 9
+  Has Edge Evaluation Marker: False
+  Initial LB: 20363.200000
+  Final LB: 20371.800000
+  UB: 20372.000000
+  Gap: 0.0010%
+  Value: 20363.2
+  Branches (3):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: +
+    └─ 3. Edge 78-82: +
+
+Node 8 (Level 3):
+  Parent: 5
+  Children: [29, 30]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 1.50
+  Est/Real Ratio: 0.501
+  Good Estimate: True
+  Node-specific r: 6.316645
+  k*r: 4.421651
+  G (Optimality Gap): 2.600000
+  Node LB Gain: 6.200000
+  Node Gap: 2.600000 (feasible)
+  Children LB Gains:
+    Child 29: 3.000000
+    Child 30: 13.300000
+  Tree Size: 8
+  Has Edge Evaluation Marker: True
+  Initial LB: 20363.200000
+  Final LB: 20369.400000
+  UB: 20372.000000
+  Gap: 0.0128%
+  Value: 20363.2
+  Branches (3):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: +
+    └─ 3. Edge 78-82: -
+
+Node 9 (Level 3):
+  Parent: 6
+  Children: [11, 12]
+  Real Subtree Count: 5
+  Estimated Subtree Size: 3.04
+  Est/Real Ratio: 0.608
+  Good Estimate: True
+  Node-specific r: 9.616652
+  k*r: 6.731657
+  G (Optimality Gap): 10.800000
+  Node LB Gain: 25.000000
+  Node Gap: 10.800000 (feasible)
+  Children LB Gains:
+    Child 11: 6.800000
+    Child 12: 13.600000
+  Tree Size: 5
+  Has Edge Evaluation Marker: True
+  Initial LB: 20337.200000
+  Final LB: 20362.200000
+  UB: 20373.000000
+  Gap: 0.0530%
+  Value: 20337.2
+  Branches (3):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    └─ 3. Edge 44-85: +
+
+Node 10 (Level 3):
+  Parent: 6
+  Children: [13, 14]
+  Real Subtree Count: 13
+  Estimated Subtree Size: 8.63
+  Est/Real Ratio: 0.664
+  Good Estimate: True
+  Node-specific r: 14.149912
+  k*r: 9.904938
+  G (Optimality Gap): 30.800000
+  Node LB Gain: 5.000000
+  Node Gap: 30.800000 (feasible)
+  Children LB Gains:
+    Child 13: 28.200000
+    Child 14: 7.100000
+  Tree Size: 6
+  Has Edge Evaluation Marker: True
+  Initial LB: 20337.200000
+  Final LB: 20342.200000
+  UB: 20373.000000
+  Gap: 0.1512%
+  Value: 20337.2
+  Branches (3):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    └─ 3. Edge 44-85: -
+
+
+LEVEL 4:
+--------------------
+Node 29 (Level 4):
+  Parent: 8
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -0.400000
+  Node LB Gain: 3.000000
+  Node Gap: -0.400000 (infeasible)
+  Tree Size: 3
+  Has Edge Evaluation Marker: False
+  Initial LB: 20369.400000
+  Final LB: 20372.400000
+  UB: 20372.000000
+  Gap: -0.0020%
+  Value: 20369.4
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: +
+    ├─ 3. Edge 78-82: -
+    └─ 4. Edge 70-76: +
+
+Node 30 (Level 4):
+  Parent: 8
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -10.700000
+  Node LB Gain: 13.300000
+  Node Gap: -10.700000 (infeasible)
+  Tree Size: 2
+  Has Edge Evaluation Marker: False
+  Initial LB: 20369.400000
+  Final LB: 20382.700000
+  UB: 20372.000000
+  Gap: -0.0525%
+  Value: 20369.4
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: +
+    ├─ 3. Edge 78-82: -
+    └─ 4. Edge 70-76: -
+
+Node 11 (Level 4):
+  Parent: 9
+  Children: [27, 28]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 1.76
+  Est/Real Ratio: 0.585
+  Good Estimate: True
+  Node-specific r: 7.035624
+  k*r: 4.924937
+  G (Optimality Gap): 4.000000
+  Node LB Gain: 6.800000
+  Node Gap: 4.000000 (feasible)
+  Children LB Gains:
+    Child 27: 3.000000
+    Child 28: 16.500000
+  Tree Size: 9
+  Has Edge Evaluation Marker: True
+  Initial LB: 20362.200000
+  Final LB: 20369.000000
+  UB: 20373.000000
+  Gap: 0.0196%
+  Value: 20362.2
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: +
+    └─ 4. Edge 35-48: +
+
+Node 12 (Level 4):
+  Parent: 9
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -3.800000
+  Node LB Gain: 13.600000
+  Node Gap: -3.800000 (infeasible)
+  Tree Size: 10
+  Has Edge Evaluation Marker: False
+  Initial LB: 20362.200000
+  Final LB: 20375.800000
+  UB: 20372.000000
+  Gap: -0.0187%
+  Value: 20362.2
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: +
+    └─ 4. Edge 35-48: -
+
+Node 13 (Level 4):
+  Parent: 10
+  Children: [15, 16]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 1.38
+  Est/Real Ratio: 0.459
+  Good Estimate: False
+  Node-specific r: 8.024961
+  k*r: 5.617473
+  G (Optimality Gap): 2.600000
+  Node LB Gain: 28.200000
+  Node Gap: 2.600000 (feasible)
+  Children LB Gains:
+    Child 15: 11.500000
+    Child 16: 5.600000
+  Tree Size: 7
+  Has Edge Evaluation Marker: True
+  Initial LB: 20342.200000
+  Final LB: 20370.400000
+  UB: 20373.000000
+  Gap: 0.0128%
+  Value: 20342.2
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    └─ 4. Edge 0-29: +
+
+Node 14 (Level 4):
+  Parent: 10
+  Children: [17, 18]
+  Real Subtree Count: 9
+  Estimated Subtree Size: 11.00
+  Est/Real Ratio: 1.222
+  Good Estimate: True
+  Node-specific r: 9.786215
+  k*r: 6.850350
+  G (Optimality Gap): 23.700000
+  Node LB Gain: 7.100000
+  Node Gap: 23.700000 (feasible)
+  Children LB Gains:
+    Child 17: 15.700000
+    Child 18: 6.100000
+  Tree Size: 8
+  Has Edge Evaluation Marker: True
+  Initial LB: 20342.200000
+  Final LB: 20349.300000
+  UB: 20373.000000
+  Gap: 0.1163%
+  Value: 20342.2
+  Branches (4):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    └─ 4. Edge 0-29: -
+
+
+LEVEL 5:
+--------------------
+Node 27 (Level 5):
+  Parent: 11
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): 0.000000
+  Node LB Gain: 3.000000
+  Node Gap: 0.000000 (infeasible)
+  Tree Size: 5
+  Has Edge Evaluation Marker: False
+  Initial LB: 20369.000000
+  Final LB: 20372.000000
+  UB: 20372.000000
+  Gap: 0.0000%
+  Value: 20369.0
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: +
+    ├─ 4. Edge 35-48: +
+    └─ 5. Edge 0-29: +
+
+Node 28 (Level 5):
+  Parent: 11
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -13.500000
+  Node LB Gain: 16.500000
+  Node Gap: -13.500000 (infeasible)
+  Tree Size: 4
+  Has Edge Evaluation Marker: False
+  Initial LB: 20369.000000
+  Final LB: 20385.500000
+  UB: 20372.000000
+  Gap: -0.0663%
+  Value: 20369.0
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: +
+    ├─ 4. Edge 35-48: +
+    └─ 5. Edge 0-29: -
+
+Node 15 (Level 5):
+  Parent: 13
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -9.900000
+  Node LB Gain: 11.500000
+  Node Gap: -9.900000 (infeasible)
+  Tree Size: 1
+  Has Edge Evaluation Marker: False
+  Initial LB: 20370.400000
+  Final LB: 20381.900000
+  UB: 20372.000000
+  Gap: -0.0486%
+  Value: 20370.4
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: +
+    └─ 5. Edge 77-80: +
+
+Node 16 (Level 5):
+  Parent: 13
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -4.000000
+  Node LB Gain: 5.600000
+  Node Gap: -4.000000 (infeasible)
+  Tree Size: 0
+  Has Edge Evaluation Marker: False
+  Initial LB: 20370.400000
+  Final LB: 20376.000000
+  UB: 20372.000000
+  Gap: -0.0196%
+  Value: 20370.4
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: +
+    └─ 5. Edge 77-80: -
+
+Node 17 (Level 5):
+  Parent: 14
+  Children: [19, 20]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 1.90
+  Est/Real Ratio: 0.633
+  Good Estimate: True
+  Node-specific r: 12.341799
+  k*r: 8.639259
+  G (Optimality Gap): 8.000000
+  Node LB Gain: 15.700000
+  Node Gap: 8.000000 (feasible)
+  Children LB Gains:
+    Child 19: 12.800000
+    Child 20: 11.900000
+  Tree Size: 9
+  Has Edge Evaluation Marker: True
+  Initial LB: 20349.300000
+  Final LB: 20365.000000
+  UB: 20373.000000
+  Gap: 0.0393%
+  Value: 20349.3
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    └─ 5. Edge 38-73: +
+
+Node 18 (Level 5):
+  Parent: 14
+  Children: [21, 22]
+  Real Subtree Count: 5
+  Estimated Subtree Size: 5.59
+  Est/Real Ratio: 1.119
+  Good Estimate: True
+  Node-specific r: 10.123241
+  k*r: 7.086268
+  G (Optimality Gap): 17.600000
+  Node LB Gain: 6.100000
+  Node Gap: 17.600000 (feasible)
+  Children LB Gains:
+    Child 21: 24.400000
+    Child 22: 4.200000
+  Tree Size: 10
+  Has Edge Evaluation Marker: True
+  Initial LB: 20349.300000
+  Final LB: 20355.400000
+  UB: 20373.000000
+  Gap: 0.0864%
+  Value: 20349.3
+  Branches (5):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    └─ 5. Edge 38-73: -
+
+
+LEVEL 6:
+--------------------
+Node 19 (Level 6):
+  Parent: 17
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -5.800000
+  Node LB Gain: 12.800000
+  Node Gap: -5.800000 (infeasible)
+  Tree Size: 9
+  Has Edge Evaluation Marker: False
+  Initial LB: 20365.000000
+  Final LB: 20377.800000
+  UB: 20372.000000
+  Gap: -0.0285%
+  Value: 20365.0
+  Branches (6):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: +
+    └─ 6. Edge 59-114: +
+
+Node 20 (Level 6):
+  Parent: 17
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -4.900000
+  Node LB Gain: 11.900000
+  Node Gap: -4.900000 (infeasible)
+  Tree Size: 8
+  Has Edge Evaluation Marker: False
+  Initial LB: 20365.000000
+  Final LB: 20376.900000
+  UB: 20372.000000
+  Gap: -0.0241%
+  Value: 20365.0
+  Branches (6):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: +
+    └─ 6. Edge 59-114: -
+
+Node 21 (Level 6):
+  Parent: 18
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -6.800000
+  Node LB Gain: 24.400000
+  Node Gap: -6.800000 (infeasible)
+  Tree Size: 11
+  Has Edge Evaluation Marker: False
+  Initial LB: 20355.400000
+  Final LB: 20379.800000
+  UB: 20373.000000
+  Gap: -0.0334%
+  Value: 20355.4
+  Branches (6):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: -
+    └─ 6. Edge 24-38: +
+
+Node 22 (Level 6):
+  Parent: 18
+  Children: [23, 24]
+  Real Subtree Count: 3
+  Estimated Subtree Size: 2.21
+  Est/Real Ratio: 0.738
+  Good Estimate: True
+  Node-specific r: 16.687121
+  k*r: 11.680985
+  G (Optimality Gap): 13.400000
+  Node LB Gain: 4.200000
+  Node Gap: 13.400000 (feasible)
+  Children LB Gains:
+    Child 23: 15.300000
+    Child 24: 18.200000
+  Tree Size: 10
+  Has Edge Evaluation Marker: True
+  Initial LB: 20355.400000
+  Final LB: 20359.600000
+  UB: 20373.000000
+  Gap: 0.0658%
+  Value: 20355.4
+  Branches (6):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: -
+    └─ 6. Edge 24-38: -
+
+
+LEVEL 7:
+--------------------
+Node 23 (Level 7):
+  Parent: 22
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -1.900000
+  Node LB Gain: 15.300000
+  Node Gap: -1.900000 (infeasible)
+  Tree Size: 11
+  Has Edge Evaluation Marker: False
+  Initial LB: 20359.600000
+  Final LB: 20374.900000
+  UB: 20373.000000
+  Gap: -0.0093%
+  Value: 20359.6
+  Branches (7):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: -
+    ├─ 6. Edge 24-38: -
+    └─ 7. Edge 58-110: +
+
+Node 24 (Level 7):
+  Parent: 22
+  Children: []
+  Real Subtree Count: 1
+  Estimated Subtree Size: 1.00
+  Est/Real Ratio: 1.000
+  Good Estimate: N/A
+  Node-specific r: N/A (no children or no positive gains)
+  G (Optimality Gap): -4.800000
+  Node LB Gain: 18.200000
+  Node Gap: -4.800000 (infeasible)
+  Tree Size: 10
+  Has Edge Evaluation Marker: False
+  Initial LB: 20359.600000
+  Final LB: 20377.800000
+  UB: 20373.000000
+  Gap: -0.0236%
+  Value: 20359.6
+  Branches (7):
+    ├─ 1. Edge 101-114: -
+    ├─ 2. Edge 54-86: -
+    ├─ 3. Edge 44-85: -
+    ├─ 4. Edge 0-29: -
+    ├─ 5. Edge 38-73: -
+    ├─ 6. Edge 24-38: -
+    └─ 7. Edge 58-110: -
