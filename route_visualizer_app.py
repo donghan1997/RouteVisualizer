@@ -107,11 +107,10 @@ with tab3:
 
 
     if uploaded_file:
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns([1, 1])
 
-        # 准备颜色
-        route_colors = plt.cm.get_cmap("tab10")
 
+        
         # ------- 左图：标准路径 -------
         with col1:
             fig1, ax1 = plt.subplots(figsize=(6, 6))
