@@ -79,12 +79,16 @@ with tab2:
         # 分析并保存图像
         st.info("Analyzing branch-and-bound tree...")
         pic_path = analyze_tree(temp_path, save_pic=True)
-
+        print(f"Tree image saved to: {pic_path}")
         # 显示图像
-        if os.path.exists(pic_path):
+        # if os.path.exists(pic_path):
+        #     st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
+        # else:
+        #     st.error("Tree image not found.")
+        try:
             st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
-        else:
-            st.error("Tree image not found.")
+        except Exception as e:
+            st.error(f"Failed to display image: {e}")
     else:
         st.info("Please upload a B&B output file (e.g., .txt format).")
 
