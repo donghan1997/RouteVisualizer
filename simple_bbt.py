@@ -104,10 +104,10 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
                     print(f"🖼️  Picture saved: {pic_path}")
                     
                     # Show the saved picture in notebook if not showing interactive plot
-                    if not show_tree:
-                        print("📊 Displaying saved tree:")
-                        # display(Image(filename=pic_path))
-                        st.image(pic_path, caption="Branch-and-Bound Tree Analysis", use_column_width=True)
+                    # if not show_tree:
+                    #     print("📊 Displaying saved tree:")
+                    #     # display(Image(filename=pic_path))
+                    #     st.image(pic_path, caption="Branch-and-Bound Tree Analysis", use_column_width=True)
                     
                     return pic_path
                 else:
