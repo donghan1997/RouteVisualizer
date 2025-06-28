@@ -85,10 +85,10 @@ with tab2:
         #     st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
         # else:
         #     st.error("Tree image not found.")
-        try:
-            st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
-        except Exception as e:
-            st.error(f"Failed to display image: {e}")
+        #try:
+        st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
+        #except Exception as e:
+            #st.error(f"Failed to display image: {e}")
     else:
         st.info("Please upload a B&B output file (e.g., .txt format).")
 
