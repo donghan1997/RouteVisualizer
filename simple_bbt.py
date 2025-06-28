@@ -90,7 +90,7 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
     st.info("🔄 Processing tree... (this may take a moment)")
     for f in Path(output_folder).glob("*.png"):
         os.remove(f)
-        st.success(f"Deleted: {f}")
+        #st.success(f"Deleted: {f}")
     result = subprocess.run(cmd, 
                             capture_output=True, 
                             text=True, 
