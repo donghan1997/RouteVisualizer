@@ -21,7 +21,12 @@ import argparse
 import tempfile
 import shutil
 from pathlib import Path
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    import subprocess
+    subprocess.check_call(["pip", "install", "matplotlib"])
+    import matplotlib.pyplot as plt
 
 # Import functions from the three original scripts
 # Note: Make sure these files are in the same directory or in Python path
