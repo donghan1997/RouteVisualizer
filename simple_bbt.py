@@ -75,7 +75,7 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
         st.info(f"📁 Saving results to: {output_folder}")
     
     # Build the command
-    cmd = ["/home/adminuser/venv/bin/python3", bbt_script, log_file]
+    cmd = ["/home/adminuser/venv/bin/python", bbt_script, log_file]
     
     if save_pic:
         cmd.extend(["--save-intermediates", "--output-dir", output_folder])
