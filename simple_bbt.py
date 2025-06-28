@@ -83,52 +83,52 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
     if not show_tree:
         cmd.append("--no-show")
     
-    try:
-        st.info("🔄 Processing tree... (this may take a moment)")
+    # try:
+    st.info("🔄 Processing tree... (this may take a moment)")
+    
+    # Run the analysis
+    result = subprocess.run(cmd, 
+                            capture_output=True, 
+                            text=True, 
+                            cwd=script_dir)
+    
+    if result.returncode == 0:
+        st.info("✅ Tree analysis completed!")
         
-        # Run the analysis
-        result = subprocess.run(cmd, 
-                              capture_output=True, 
-                              text=True, 
-                              cwd=script_dir)
-        
-        if result.returncode == 0:
-            st.info("✅ Tree analysis completed!")
+        # Extract instance name from output for finding the saved picture
+        if save_pic:
+            # Look for the saved PNG file
+            png_files = list(Path(output_folder).glob("bb_tree_analysis_*.png"))
             
-            # Extract instance name from output for finding the saved picture
-            if save_pic:
-                # Look for the saved PNG file
-                png_files = list(Path(output_folder).glob("bb_tree_analysis_*.png"))
+            if png_files:
+                pic_path = str(png_files[0])
+                st.info(f"🖼️  Picture saved: {pic_path}")
                 
-                if png_files:
-                    pic_path = str(png_files[0])
-                    st.info(f"🖼️  Picture saved: {pic_path}")
-                    
-                    # Show the saved picture in notebook if not showing interactive plot
-                    if not show_tree:
-                        st.info("📊 Displaying saved tree:")
-                        # display(Image(filename=pic_path))
-                        return pic_path 
-                        # st.image(pic_path, caption="Branch-and-Bound Tree Analysis", use_column_width=True)
-                    
-                    return pic_path
-                else:
-                    st.info("⚠️  Warning: Picture was supposed to be saved but not found")
-                    return None
-            
-            return None
-            
-        else:
-            st.info("❌ Error during analysis:")
-            if result.stderr:
-                st.info(result.stderr)
-            if result.stdout:
-                st.info(result.stdout)
-            return None
-            
-    except Exception as e:
-        st.info(f"❌ Error running analysis: {e}")
+                # Show the saved picture in notebook if not showing interactive plot
+                if not show_tree:
+                    st.info("📊 Displaying saved tree:")
+                    # display(Image(filename=pic_path))
+                    return pic_path 
+                    # st.image(pic_path, caption="Branch-and-Bound Tree Analysis", use_column_width=True)
+                
+                return pic_path
+            else:
+                st.info("⚠️  Warning: Picture was supposed to be saved but not found")
+                return None
+        
         return None
+        
+    else:
+        st.info("❌ Error during analysis:")
+        if result.stderr:
+            st.info(result.stderr)
+        if result.stdout:
+            st.info(result.stdout)
+        return None
+            
+    # except Exception as e:
+    #     st.info(f"❌ Error running analysis: {e}")
+    #     return None
 
 
 def show_tree(log_file):
