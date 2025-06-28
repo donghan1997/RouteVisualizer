@@ -88,8 +88,8 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
     
     # try:
     st.info("🔄 Processing tree... (this may take a moment)")
-    
-    # Run the analysis
+    for f in Path(output_folder).glob("*.png"):
+        os.remove(f)
     result = subprocess.run(cmd, 
                             capture_output=True, 
                             text=True, 
@@ -101,6 +101,7 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
         # Extract instance name from output for finding the saved picture
         if save_pic:
             # Look for the saved PNG file
+            
             png_files = list(Path(output_folder).glob("bb_tree_analysis_*.png"))
             
             if png_files:
