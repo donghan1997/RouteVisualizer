@@ -17,6 +17,7 @@ Usage:
 """
 
 import os
+import sys
 import subprocess
 import tempfile
 import shutil
@@ -75,6 +76,8 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
         st.info(f"📁 Saving results to: {output_folder}")
     
     # Build the command
+    st.write("Python executable path:")
+    st.code(sys.executable)
     cmd = ["/home/adminuser/venv/bin/python", bbt_script, log_file]
     
     if save_pic:
