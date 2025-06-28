@@ -23,7 +23,7 @@ import shutil
 from pathlib import Path
 import matplotlib.pyplot as plt
 # from IPython.display import display, Image
-import streamlit as st
+# import streamlit as st
 
 
 def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
@@ -107,6 +107,7 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
                     if not show_tree:
                         print("📊 Displaying saved tree:")
                         # display(Image(filename=pic_path))
+                        return pic_path 
                         # st.image(pic_path, caption="Branch-and-Bound Tree Analysis", use_column_width=True)
                     
                     return pic_path
