@@ -76,8 +76,8 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
         st.info(f"📁 Saving results to: {output_folder}")
     
     # Build the command
-    st.write("Python executable path:")
-    st.code(sys.executable)
+    #st.write("Python executable path:")
+    #st.code(sys.executable)
     cmd = [sys.executable, bbt_script, log_file]
     
     if save_pic:
@@ -94,7 +94,7 @@ def analyze_tree(log_file, save_pic=False, output_folder=None, show_tree=True):
                             capture_output=True, 
                             text=True, 
                             cwd=script_dir)
-    st.info(result.stdout)
+    #st.info(result.stdout)
     if result.returncode == 0:
         st.info("✅ Tree analysis completed!")
         
