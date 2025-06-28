@@ -113,7 +113,7 @@ with tab3:
         
         # ------- 左图：标准路径 -------
         with col1:
-            fig1, ax1 = plt.subplots(figsize=(6, 6))
+            fig1, ax1 = plt.subplots(figsize=(5, 5))
             ax1.scatter(x, y, color='black', s=15)
             for i, route in enumerate(standard_routes['routes']):
                 path = route['path']
@@ -132,7 +132,7 @@ with tab3:
 
         # ------- 右图：公平路径 -------
         with col2:
-            fig2, ax2 = plt.subplots(figsize=(6, 6))
+            fig2, ax2 = plt.subplots(figsize=(5, 5))
             ax2.scatter(x, y, color='black', s=15)
 
             selected_routes = (
