@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+Tree Structure Building Module
+
+Builds hierarchical tree structures from flat tree data and calculates subtree size estimations.
+Implements the simplified estimation approach using the formula: 2^(G/(k*r))
+
+Author: Heinrich (Refined)
+"""
+
 import re
 import os
 import glob
@@ -6,7 +15,17 @@ from pathlib import Path
 from collections import defaultdict, deque
 import math
 
-class TreeNode:
+
+# Configuration constants
+DEFAULT_K_RANGE = (0.1, 10.0)
+GOOD_ESTIMATE_RANGE = (0.5, 2.0)
+MAX_POWER_EXPONENT = 100
+MIN_R_VALUE_FACTOR = 0.001
+
+
+class BranchNode:
+    """Represents a node in the branch-and-bound tree."""
+    
     def __init__(self, idx, data):
         self.idx = idx
         self.data = data
@@ -19,12 +38,13 @@ class TreeNode:
         self.estimated_size = 1  # Node-specific estimated subtree size
     
     def add_child(self, child_node):
+        """Add a child node and update its level."""
         child_node.parent = self
         child_node.level = self.level + 1
         self.children.append(child_node)
     
     def calculate_subtree_count(self):
-        """Calculate the total number of nodes in this subtree (including self)"""
+        """Calculate the total number of nodes in this subtree (including self)."""
         if not self.children:
             self.subtree_count = 1
             return 1
@@ -36,9 +56,18 @@ class TreeNode:
         self.subtree_count = total
         return total
 
-def parse_tree_data_file(file_path):
-    """Parse tree data file and extract node information."""
-    nodes = {}
+
+def load_tree_data(file_path):
+    """
+    Parse tree data file and extract node information.
+    
+    Args:
+        file_path (str): Path to tree detail file
+        
+    Returns:
+        dict: Dictionary mapping node idx to BranchNode objects
+    """
+    tree_nodes = {}
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -92,11 +121,12 @@ def parse_tree_data_file(file_path):
             'branches': branches
         }
         
-        nodes[idx] = TreeNode(idx, node_data)
+        tree_nodes[idx] = BranchNode(idx, node_data)
     
-    return nodes
+    return tree_nodes
 
-def find_branch_prefix(branches1, branches2):
+
+def find_common_branch_prefix(branches1, branches2):
     """Find common prefix of branching decisions between two branch lists."""
     common_prefix = []
     min_len = min(len(branches1), len(branches2))
@@ -109,13 +139,22 @@ def find_branch_prefix(branches1, branches2):
     
     return common_prefix
 
-def build_tree_structure(nodes):
-    """Build tree structure based on branching patterns and tree sizes."""
-    if not nodes:
+
+def create_tree_hierarchy(tree_nodes):
+    """
+    Build tree structure based on branching patterns and tree sizes.
+    
+    Args:
+        tree_nodes (dict): Dictionary of BranchNode objects
+        
+    Returns:
+        BranchNode: Root node of the tree, or None if no nodes
+    """
+    if not tree_nodes:
         return None
     
     # Sort nodes by idx to process in order
-    sorted_nodes = sorted(nodes.values(), key=lambda x: x.idx)
+    sorted_nodes = sorted(tree_nodes.values(), key=lambda x: x.idx)
     
     # Root is typically the first node (idx=0)
     root = sorted_nodes[0]
@@ -138,7 +177,7 @@ def build_tree_structure(nodes):
             # Check if candidate could be parent
             # Parent should have fewer branches (one less branching decision)
             if len(candidate_branches) < len(current_branches):
-                common_prefix = find_branch_prefix(candidate_branches, current_branches)
+                common_prefix = find_common_branch_prefix(candidate_branches, current_branches)
                 
                 # If current node's branches start with candidate's branches
                 if len(common_prefix) == len(candidate_branches):
@@ -167,12 +206,21 @@ def build_tree_structure(nodes):
     
     return root
 
-def arrange_nodes_by_level(root):
-    """Arrange nodes by tree level using BFS."""
+
+def sort_nodes_by_level(root):
+    """
+    Arrange nodes by tree level using BFS.
+    
+    Args:
+        root (BranchNode): Root node of the tree
+        
+    Returns:
+        list: List of nodes arranged by level
+    """
     if not root:
         return []
     
-    arranged_nodes = []
+    level_sorted_nodes = []
     queue = deque([root])
     
     while queue:
@@ -187,11 +235,12 @@ def arrange_nodes_by_level(root):
             for child in sorted(node.children, key=lambda x: x.idx):
                 queue.append(child)
         
-        arranged_nodes.extend(current_level)
+        level_sorted_nodes.extend(current_level)
     
-    return arranged_nodes
+    return level_sorted_nodes
 
-def safe_power_calculation(base, exponent, max_exponent=100):
+
+def safe_power_calculation(base, exponent, max_exponent=MAX_POWER_EXPONENT):
     """Safely calculate base^exponent with overflow protection."""
     if exponent > max_exponent:
         return float('inf')  # Return infinity for very large values
@@ -204,10 +253,18 @@ def safe_power_calculation(base, exponent, max_exponent=100):
     except OverflowError:
         return float('inf')
 
-def calculate_simplified_estimated_size_with_k(node, k_value):
+
+def estimate_subtree_size(node, k_value):
     """
     SIMPLIFIED: Calculate estimated subtree size using only the basic formula 2^(G/(k*r))
     No special cases for gains > G
+    
+    Args:
+        node (BranchNode): Node to calculate estimation for
+        k_value (float): K parameter for the estimation formula
+        
+    Returns:
+        float: Estimated subtree size
     """
     # If no children, estimated size is 1
     if not node.children:
@@ -243,41 +300,49 @@ def calculate_simplified_estimated_size_with_k(node, k_value):
         r_value = math.exp(sum(math.log(gain) for gain in positive_gains) / len(positive_gains))
     
     # Minimum r value to prevent division by zero
-    min_r_value = max(G / 100, 0.001)
+    min_r_value = max(G / 100, MIN_R_VALUE_FACTOR)
     r_value = max(r_value, min_r_value)
     
     # Apply the basic formula: 2^(G/(k*r))
     exponent = G / (k_value * r_value)
     return safe_power_calculation(2, exponent)
 
-def calculate_good_estimate_ratio(arranged_nodes, k_value):
+
+def compute_estimation_accuracy(level_sorted_nodes, k_value):
     """
     Calculate the good estimate ratio for a given k value.
     Good estimate: 0.5 < est/real < 2, excluding trivial nodes (real=1, est≈1)
+    
+    Args:
+        level_sorted_nodes (list): List of nodes sorted by level
+        k_value (float): K parameter value to evaluate
+        
+    Returns:
+        float: Ratio of good estimates to total valid comparisons
     """
     valid_comparisons = 0
     good_estimates = 0
     
-    for node in arranged_nodes:
-        real_size = node.subtree_count
+    for node in level_sorted_nodes:
+        actual_count = node.subtree_count
         
         # Skip trivial nodes (real=1, est≈1)
-        if real_size == 1:
+        if actual_count == 1:
             continue
             
         # Calculate estimated size with this k value
-        est_size = calculate_simplified_estimated_size_with_k(node, k_value)
+        estimated_size = estimate_subtree_size(node, k_value)
         
         # Skip if estimated size is also trivial (≈1)
-        if est_size <= 1.1:  # Allow small tolerance for floating point
+        if estimated_size <= 1.1:  # Allow small tolerance for floating point
             continue
             
         # This is a valid comparison
         valid_comparisons += 1
         
         # Check if it's a good estimate
-        ratio = est_size / real_size
-        if 0.5 <= ratio <= 2.0:
+        ratio = estimated_size / actual_count
+        if GOOD_ESTIMATE_RANGE[0] <= ratio <= GOOD_ESTIMATE_RANGE[1]:
             good_estimates += 1
     
     # Return ratio (handle division by zero)
@@ -285,10 +350,15 @@ def calculate_good_estimate_ratio(arranged_nodes, k_value):
         return 0.0
     return good_estimates / valid_comparisons
 
-def calculate_simplified_node_r_and_estimated_size(node, k_value=1.0):
+
+def calculate_node_r_and_estimated_size(node, k_value=1.0):
     """
     SIMPLIFIED: Calculate node-specific r value and estimated subtree size.
     Uses only the basic formula 2^(G/(k*r)) - no special cases.
+    
+    Args:
+        node (BranchNode): Node to calculate values for
+        k_value (float): K parameter for the estimation formula
     """
     # If no children, estimated size is 1
     if not node.children:
@@ -330,22 +400,32 @@ def calculate_simplified_node_r_and_estimated_size(node, k_value=1.0):
         node.r_value = math.exp(sum(math.log(gain) for gain in positive_gains) / len(positive_gains))
     
     # Minimum r value to prevent division by zero
-    min_r_value = max(G / 100, 0.001)
+    min_r_value = max(G / 100, MIN_R_VALUE_FACTOR)
     node.r_value = max(node.r_value, min_r_value)
     
     # Apply the basic formula: 2^(G/(k*r))
     exponent = G / (k_value * node.r_value)
     node.estimated_size = safe_power_calculation(2, exponent)
 
-def calculate_all_node_r_values_simplified(arranged_nodes, k_value=1.0):
-    """Calculate r values and estimated sizes for all nodes using the simplified approach."""
-    for node in arranged_nodes:
-        calculate_simplified_node_r_and_estimated_size(node, k_value)
 
-def find_optimal_k(arranged_nodes, k_range=(0.1, 10.0), num_trials=100):
+def calculate_all_node_estimations(level_sorted_nodes, k_value=1.0):
+    """Calculate r values and estimated sizes for all nodes using the simplified approach."""
+    for node in level_sorted_nodes:
+        calculate_node_r_and_estimated_size(node, k_value)
+
+
+def optimize_k_parameter(level_sorted_nodes, k_range=DEFAULT_K_RANGE, num_trials=100):
     """
     Find the optimal k value that maximizes the good estimate ratio.
     Uses a grid search followed by a finer search around the best value.
+    
+    Args:
+        level_sorted_nodes (list): List of nodes sorted by level
+        k_range (tuple): Range of k values to search (min, max)
+        num_trials (int): Number of trials for coarse search
+        
+    Returns:
+        tuple: (optimal_k, best_ratio)
     """
     print(f"  Finding optimal k value...")
     
@@ -358,7 +438,7 @@ def find_optimal_k(arranged_nodes, k_range=(0.1, 10.0), num_trials=100):
     # Calculate ratio for each k value
     ratios = []
     for k in k_values:
-        ratio = calculate_good_estimate_ratio(arranged_nodes, k)
+        ratio = compute_estimation_accuracy(level_sorted_nodes, k)
         ratios.append(ratio)
         if ratio > best_ratio:
             best_ratio = ratio
@@ -373,7 +453,7 @@ def find_optimal_k(arranged_nodes, k_range=(0.1, 10.0), num_trials=100):
         
         # Finer search
         for k in k_values_fine:
-            ratio = calculate_good_estimate_ratio(arranged_nodes, k)
+            ratio = compute_estimation_accuracy(level_sorted_nodes, k)
             if ratio > best_ratio:
                 best_ratio = ratio
                 best_k = k
@@ -381,20 +461,21 @@ def find_optimal_k(arranged_nodes, k_range=(0.1, 10.0), num_trials=100):
     print(f"    Optimal k = {best_k:.3f}, Good estimate ratio = {best_ratio:.3f}")
     return best_k, best_ratio
 
-def generate_simplified_tree_output(arranged_nodes, instance_name):
+
+def create_structured_report(level_sorted_nodes, instance_name):
     """Generate formatted tree output using the simplified approach."""
     output_lines = []
     
     # First, find the optimal k value for this instance
-    optimal_k, best_ratio = find_optimal_k(arranged_nodes)
+    optimal_k, best_ratio = optimize_k_parameter(level_sorted_nodes)
     
     # Calculate node-specific r values and estimated sizes using optimal k
-    calculate_all_node_r_values_simplified(arranged_nodes, optimal_k)
+    calculate_all_node_estimations(level_sorted_nodes, optimal_k)
     
     output_lines.append("="*80)
     output_lines.append(f"SIMPLIFIED Tree Information for {instance_name}")
     output_lines.append("="*80)
-    output_lines.append(f"Total nodes: {len(arranged_nodes)}")
+    output_lines.append(f"Total nodes: {len(level_sorted_nodes)}")
     output_lines.append(f"Optimal k value: {optimal_k:.3f}")
     output_lines.append(f"Good estimate ratio: {best_ratio:.3f}")
     output_lines.append("")
@@ -404,24 +485,24 @@ def generate_simplified_tree_output(arranged_nodes, instance_name):
     output_lines.append("- Two children: r = sqrt(gain1 * gain2)")
     output_lines.append("- Multiple children: r = geometric_mean(all_positive_gains)")
     output_lines.append("- All cases: est_size = 2^(G/(k*r)) (no special cases for gain > G)")
-    output_lines.append(f"- Good estimate criterion: 0.5 ≤ est/real ≤ 2.0 (excluding trivial nodes)")
+    output_lines.append(f"- Good estimate criterion: {GOOD_ESTIMATE_RANGE[0]} ≤ est/real ≤ {GOOD_ESTIMATE_RANGE[1]} (excluding trivial nodes)")
     output_lines.append("")
     
     # Calculate estimation quality statistics
-    total_nodes = len(arranged_nodes)
-    trivial_nodes = sum(1 for node in arranged_nodes if node.subtree_count == 1)
+    total_nodes = len(level_sorted_nodes)
+    trivial_nodes = sum(1 for node in level_sorted_nodes if node.subtree_count == 1)
     non_trivial_nodes = total_nodes - trivial_nodes
     
     good_estimates = 0
     valid_comparisons = 0
     all_ratios = []
     
-    for node in arranged_nodes:
+    for node in level_sorted_nodes:
         if node.subtree_count > 1 and node.estimated_size > 1.1:
             valid_comparisons += 1
             ratio = node.estimated_size / node.subtree_count
             all_ratios.append(ratio)
-            if 0.5 <= ratio <= 2.0:
+            if GOOD_ESTIMATE_RANGE[0] <= ratio <= GOOD_ESTIMATE_RANGE[1]:
                 good_estimates += 1
     
     output_lines.append("Estimation Quality Summary:")
@@ -441,7 +522,7 @@ def generate_simplified_tree_output(arranged_nodes, instance_name):
     
     # Group nodes by level for summary
     level_summary = {}
-    for node in arranged_nodes:
+    for node in level_sorted_nodes:
         level = node.level
         if level not in level_summary:
             level_summary[level] = {'count': 0, 'avg_r': [], 'avg_est_size': [], 'avg_real_size': []}
@@ -467,7 +548,7 @@ def generate_simplified_tree_output(arranged_nodes, instance_name):
     output_lines.append("")
     
     current_level = -1
-    for node in arranged_nodes:
+    for node in level_sorted_nodes:
         # Add level separator
         if node.level != current_level:
             if current_level != -1:
@@ -489,7 +570,7 @@ def generate_simplified_tree_output(arranged_nodes, instance_name):
         
         # Calculate estimation quality for this node
         est_real_ratio = node.estimated_size / node.subtree_count if node.subtree_count > 0 else float('inf')
-        is_good_estimate = (0.5 <= est_real_ratio <= 2.0) if node.subtree_count > 1 and node.estimated_size > 1.1 else "N/A"
+        is_good_estimate = (GOOD_ESTIMATE_RANGE[0] <= est_real_ratio <= GOOD_ESTIMATE_RANGE[1]) if node.subtree_count > 1 and node.estimated_size > 1.1 else "N/A"
         
         output_lines.append(f"Node {node.idx} (Level {node.level}):")
         output_lines.append(f"  Parent: {parent_idx}")
@@ -534,7 +615,8 @@ def generate_simplified_tree_output(arranged_nodes, instance_name):
     
     return "\n".join(output_lines)
 
-def extract_instance_name_from_tree_file(filepath):
+
+def get_instance_name_from_tree_file(filepath):
     """Extract instance name from tree data file."""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -549,7 +631,8 @@ def extract_instance_name_from_tree_file(filepath):
     # Fallback: use filename without extension
     return os.path.splitext(os.path.basename(filepath))[0]
 
-def generate_structured_filename(instance_name):
+
+def create_structured_filename(instance_name):
     """Generate structured tree filename."""
     # Extract numbers from instance name
     numbers = re.findall(r'\d+', instance_name)
@@ -559,23 +642,28 @@ def generate_structured_filename(instance_name):
         clean_name = re.sub(r'[^\w\d_]', '_', instance_name)
         return f"structured_tree_{clean_name}.txt"
 
-def main():
-    # Get input folder
-    input_folder = input("Enter the folder path containing tree data files (or press Enter for 'tree_details'): ").strip()
-    if not input_folder:
-        input_folder = "tree_details"
+
+def process_tree_files(input_folder="tree_details", output_dir="structured_trees"):
+    """
+    Process multiple tree detail files and build structured trees.
     
+    Args:
+        input_folder (str): Path to folder containing tree detail files
+        output_dir (str): Directory to save structured tree files
+        
+    Returns:
+        int: Number of files processed successfully
+    """
     # Find all tree data files
     tree_files = glob.glob(os.path.join(input_folder, "tree_*.txt"))
     
     if not tree_files:
         print(f"No tree_*.txt files found in {input_folder}")
-        return
+        return 0
     
     print(f"Found {len(tree_files)} tree data files")
     
     # Create output directory
-    output_dir = "structured_trees_selflog_kmax_simpler"
     os.makedirs(output_dir, exist_ok=True)
     print(f"Created output directory: {output_dir}")
     
@@ -585,31 +673,31 @@ def main():
         print(f"Processing: {os.path.basename(filepath)}")
         
         # Extract instance name
-        instance_name = extract_instance_name_from_tree_file(filepath)
+        instance_name = get_instance_name_from_tree_file(filepath)
         
         # Parse tree data
-        nodes = parse_tree_data_file(filepath)
+        tree_nodes = load_tree_data(filepath)
         
-        if not nodes:
+        if not tree_nodes:
             print(f"  -> No tree data found in {os.path.basename(filepath)}")
             continue
         
         # Build tree structure
-        root = build_tree_structure(nodes)
+        root = create_tree_hierarchy(tree_nodes)
         
         if not root:
             print(f"  -> Could not build tree structure for {os.path.basename(filepath)}")
             continue
         
         # Arrange nodes by level
-        arranged_nodes = arrange_nodes_by_level(root)
+        level_sorted_nodes = sort_nodes_by_level(root)
         
         # Generate output filename
-        output_filename = generate_structured_filename(instance_name)
+        output_filename = create_structured_filename(instance_name)
         output_path = os.path.join(output_dir, output_filename)
         
-        # Generate simplified structured output
-        structured_output = generate_simplified_tree_output(arranged_nodes, instance_name)
+        # Generate structured output
+        structured_output = create_structured_report(level_sorted_nodes, instance_name)
         
         # Write to file
         try:
@@ -617,13 +705,27 @@ def main():
                 f.write(structured_output)
             
             processed_count += 1
-            print(f"  -> Created: {output_filename} ({len(arranged_nodes)} nodes, {root.subtree_count} total subtree)")
+            print(f"  -> Created: {output_filename} ({len(level_sorted_nodes)} nodes, {root.subtree_count} total subtree)")
             
         except Exception as e:
             print(f"  -> Error writing {output_filename}: {e}")
     
+    return processed_count
+
+
+def main():
+    """Main function for command line usage."""
+    # Get input folder
+    input_folder = input("Enter the folder path containing tree data files (or press Enter for 'tree_details'): ").strip()
+    if not input_folder:
+        input_folder = "tree_details"
+    
+    # Process files
+    processed_count = process_tree_files(input_folder)
+    
     print(f"\nProcessing complete! {processed_count} files processed successfully.")
-    print(f"Simplified tree files saved in: {output_dir}/")
+    print(f"Structured tree files saved in: structured_trees/")
+
 
 if __name__ == "__main__":
     main()

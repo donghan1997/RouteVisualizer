@@ -1,7 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import json
-from simple_bbt import analyze_tree
+from RouteVisualizer.core.simple_bbt import analyze_tree
 import os
 
 st.set_page_config(layout="wide", page_title="CVRP Visualization")
