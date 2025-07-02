@@ -1,13 +1,30 @@
 #!/usr/bin/env python3
+"""
+Tree Data Extraction Module
+
+Extracts branch-and-bound tree information from solver log files (.out files).
+Parses tree sections, bounds, and branching decisions to create structured tree data.
+
+Author: Heinrich (Refined)
+"""
+
 import re
 import os
 import glob
 from pathlib import Path
 
-def parse_out_file_for_tree(file_path, debug=False):
+
+def extract_tree_sections(file_path, debug=False):
     """
     Parse the .out file to extract tree information and branching details for 2-way branching.
     Extracts the final LP value as the last EXACT pricing before "evaluate on edge:" markers.
+    
+    Args:
+        file_path (str): Path to the solver log file
+        debug (bool): Enable debug output
+        
+    Returns:
+        list: List of tree section dictionaries with extracted data
     """
     try:
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -23,7 +40,7 @@ def parse_out_file_for_tree(file_path, debug=False):
     if debug:
         print(f"Number of tree sections matched by regex: {len(sections)}")
     
-    tree_data = []
+    tree_sections = []
     
     for section_index, section in enumerate(sections):
         hashes, tree_size, initial_lb, ub, details = section
@@ -100,33 +117,34 @@ def parse_out_file_for_tree(file_path, debug=False):
             'details': details.strip()
         }
         
-        tree_data.append(tree_section)
+        tree_sections.append(tree_section)
     
     # Sort by idx to ensure correct order
-    tree_data.sort(key=lambda x: x['idx'])
+    tree_sections.sort(key=lambda x: x['idx'])
     
     if debug:
-        debug_tree_data(tree_data)
+        print_tree_debug_info(tree_sections)
         
         # Check for missing indexes
-        idx_values = [section['idx'] for section in tree_data]
+        idx_values = [section['idx'] for section in tree_sections]
         if idx_values:  # Only check if we have any data
             expected_idx = list(range(max(idx_values) + 1))
             missing_idx = [idx for idx in expected_idx if idx not in idx_values]
             if missing_idx:
                 print("WARNING: Missing idx values:", missing_idx)
         
-    return tree_data
+    return tree_sections
 
-def debug_tree_data(tree_data):
+
+def print_tree_debug_info(tree_sections):
     """Print debug information about the parsed tree data."""
     print("\n" + "="*80)
     print("DEBUG: 2-Way Branch-and-Bound Tree Data Summary")
     print("="*80)
     
-    print(f"Number of tree sections found: {len(tree_data)}")
+    print(f"Number of tree sections found: {len(tree_sections)}")
     
-    for i, section in enumerate(tree_data):
+    for i, section in enumerate(tree_sections):
         print(f"\nTree Section {i+1} (idx={section['idx']}):")
         print(f"  Tree Size: {section['tree_size']}")
         print(f"  Has Edge Evaluation Marker: {section.get('has_edge_eval_marker', False)}")
@@ -145,17 +163,18 @@ def debug_tree_data(tree_data):
     
     print("\n" + "="*80 + "\n")
 
-def generate_tree_output(tree_data, instance_name):
+
+def format_tree_report(tree_sections, instance_name):
     """Generate formatted tree information output."""
     output_lines = []
     
     output_lines.append("="*80)
     output_lines.append(f"Tree Information Details for {instance_name}")
     output_lines.append("="*80)
-    output_lines.append(f"Total tree sections found: {len(tree_data)}")
+    output_lines.append(f"Total tree sections found: {len(tree_sections)}")
     output_lines.append("")
     
-    for i, section in enumerate(tree_data):
+    for i, section in enumerate(tree_sections):
         output_lines.append(f"Tree Section {i+1} (idx={section['idx']}):")
         output_lines.append(f"  Tree Size: {section['tree_size']}")
         output_lines.append(f"  Has Edge Evaluation Marker: {section.get('has_edge_eval_marker', False)}")
@@ -177,7 +196,8 @@ def generate_tree_output(tree_data, instance_name):
     
     return "\n".join(output_lines)
 
-def extract_instance_name_from_out_file(filepath):
+
+def get_instance_name(filepath):
     """Extract instance name from .out file."""
     try:
         with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
@@ -198,7 +218,8 @@ def extract_instance_name_from_out_file(filepath):
         # Fallback: use filename without extension
         return os.path.splitext(os.path.basename(filepath))[0]
 
-def generate_tree_filename(instance_name):
+
+def create_output_filename(instance_name):
     """Generate tree output filename from instance name."""
     # Extract numbers from instance name (e.g., CVRP_120_100 -> 120_100)
     numbers = re.findall(r'\d+', instance_name)
@@ -209,28 +230,31 @@ def generate_tree_filename(instance_name):
         clean_name = re.sub(r'[^\w\d_]', '_', instance_name)
         return f"tree_{clean_name}.txt"
 
-def main():
-    # Get input folder
-    input_folder = input("Enter the folder path containing .out files (or press Enter for current directory): ").strip()
-    if not input_folder:
-        input_folder = "."
+
+def process_log_files(input_folder=".", output_dir="tree_details", debug_mode=False):
+    """
+    Process multiple .out files and extract tree data from each.
     
+    Args:
+        input_folder (str): Path to folder containing .out files
+        output_dir (str): Directory to save tree detail files
+        debug_mode (bool): Enable debug output
+        
+    Returns:
+        int: Number of files processed successfully
+    """
     # Find all .out files
     out_files = glob.glob(os.path.join(input_folder, "*.out"))
     
     if not out_files:
         print(f"No .out files found in {input_folder}")
-        return
+        return 0
     
     print(f"Found {len(out_files)} .out files")
     
     # Create output directory
-    output_dir = "tree_details"
     os.makedirs(output_dir, exist_ok=True)
     print(f"Created output directory: {output_dir}")
-    
-    # Ask for debug mode
-    debug_mode = input("Enable debug mode? (y/N): ").strip().lower() == 'y'
     
     # Process each file
     processed_count = 0
@@ -238,21 +262,21 @@ def main():
         print(f"Processing: {os.path.basename(filepath)}")
         
         # Extract instance name
-        instance_name = extract_instance_name_from_out_file(filepath)
+        instance_name = get_instance_name(filepath)
         
         # Parse tree data
-        tree_data = parse_out_file_for_tree(filepath, debug=debug_mode)
+        tree_sections = extract_tree_sections(filepath, debug=debug_mode)
         
-        if not tree_data:
+        if not tree_sections:
             print(f"  -> No tree data found in {os.path.basename(filepath)}")
             continue
         
         # Generate output filename
-        output_filename = generate_tree_filename(instance_name)
+        output_filename = create_output_filename(instance_name)
         output_path = os.path.join(output_dir, output_filename)
         
         # Generate tree output
-        tree_output = generate_tree_output(tree_data, instance_name)
+        tree_output = format_tree_report(tree_sections, instance_name)
         
         # Write to file
         try:
@@ -260,13 +284,30 @@ def main():
                 f.write(tree_output)
             
             processed_count += 1
-            print(f"  -> Created: {output_filename} ({len(tree_data)} tree sections)")
+            print(f"  -> Created: {output_filename} ({len(tree_sections)} tree sections)")
             
         except Exception as e:
             print(f"  -> Error writing {output_filename}: {e}")
     
+    return processed_count
+
+
+def main():
+    """Main function for command line usage."""
+    # Get input folder
+    input_folder = input("Enter the folder path containing .out files (or press Enter for current directory): ").strip()
+    if not input_folder:
+        input_folder = "."
+    
+    # Ask for debug mode
+    debug_mode = input("Enable debug mode? (y/N): ").strip().lower() == 'y'
+    
+    # Process files
+    processed_count = process_log_files(input_folder, debug_mode=debug_mode)
+    
     print(f"\nProcessing complete! {processed_count} files processed successfully.")
-    print(f"Tree detail files saved in: {output_dir}/")
+    print(f"Tree detail files saved in: tree_details/")
+
 
 if __name__ == "__main__":
     main()

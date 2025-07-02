@@ -1,16 +1,33 @@
 #!/usr/bin/env python3
+"""
+Tree Visualization Module
+
+Creates interactive visualizations of branch-and-bound trees with estimation quality analysis.
+Generates matplotlib plots with color-coded nodes and comprehensive statistics.
+
+Author: Heinrich (Refined)
+"""
+
 import re
 import os
-import pandas as pd
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 import matplotlib.patches as mpatches
-import argparse
 from pathlib import Path
 from collections import defaultdict
 
+
+# Configuration constants
+GOOD_ESTIMATE_RANGE = (0.5, 2.0)
+NODE_SIZE_BASE = 200
+NODE_SIZE_SCALE = 800
+
+
 class TreeNodeData:
+    """Represents tree node data for visualization."""
+    
     def __init__(self, node_id, level, parent_id, children_ids, 
                  subtree_count, estimated_subtree_size):
         self.node_id = node_id
@@ -21,9 +38,18 @@ class TreeNodeData:
         self.estimated_subtree_size = estimated_subtree_size
         self.gap_percent = None
 
-def parse_structured_tree_file(file_path):
-    """Parse structured tree output file to extract node information."""
-    nodes = {}
+
+def load_structured_tree(file_path):
+    """
+    Parse structured tree output file to extract node information.
+    
+    Args:
+        file_path (str): Path to structured tree file
+        
+    Returns:
+        tuple: (nodes_dict, instance_name)
+    """
+    tree_nodes = {}
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -33,7 +59,7 @@ def parse_structured_tree_file(file_path):
         return {}, "Unknown"
     
     # Extract instance name
-    instance_match = re.search(r'Structured Tree Information for (.+)', content)
+    instance_match = re.search(r'Tree Information for (.+)', content)
     instance_name = instance_match.group(1) if instance_match else "Unknown"
     
     # Parse each node section
@@ -60,7 +86,7 @@ def parse_structured_tree_file(file_path):
             children_ids = []
         
         # Extract subtree count
-        subtree_match = re.search(r'Subtree Count: (\d+)', node_content)
+        subtree_match = re.search(r'Real Subtree Count: (\d+)', node_content)
         subtree_count = int(subtree_match.group(1)) if subtree_match else 1
         
         # Extract estimated subtree size
@@ -94,58 +120,61 @@ def parse_structured_tree_file(file_path):
         node_data.gap_percent = gap_percent
         node_data.branches = branches  # Store branch directions
         
-        nodes[node_id] = node_data
+        tree_nodes[node_id] = node_data
     
-    return nodes, instance_name
+    return tree_nodes, instance_name
 
-def calculate_level_statistics(nodes):
+
+def calculate_level_statistics(tree_nodes):
     """Calculate estimation quality statistics for each level (excluding trivial real=1 nodes)."""
     level_stats = defaultdict(lambda: {'good': 0, 'over': 0, 'under': 0, 'inf': 0, 'total': 0})
     
-    for node in nodes.values():
+    for node in tree_nodes.values():
         level = node.level
-        real_count = node.subtree_count
-        est_size = node.estimated_subtree_size
+        actual_count = node.subtree_count
+        estimated_size = node.estimated_subtree_size
         
         # Only include non-trivial nodes (real > 1)
-        if real_count <= 1:
+        if actual_count <= 1:
             continue
             
         level_stats[level]['total'] += 1
         
-        if est_size == float('inf'):
+        if estimated_size == float('inf'):
             level_stats[level]['inf'] += 1
         else:
-            ratio = est_size / real_count
+            ratio = estimated_size / actual_count
             
-            if 0.5 <= ratio <= 2:
+            if GOOD_ESTIMATE_RANGE[0] <= ratio <= GOOD_ESTIMATE_RANGE[1]:
                 level_stats[level]['good'] += 1
-            elif ratio > 2:
+            elif ratio > GOOD_ESTIMATE_RANGE[1]:
                 level_stats[level]['over'] += 1
             else:
                 level_stats[level]['under'] += 1
     
     return dict(level_stats)
 
-def create_tree_graph(nodes):
+
+def build_networkx_graph(tree_nodes):
     """Create NetworkX graph from node data."""
     G = nx.DiGraph()
     
     # Add nodes
-    for node_id, node_data in nodes.items():
+    for node_id, node_data in tree_nodes.items():
         G.add_node(node_id, 
                   level=node_data.level,
                   subtree_count=node_data.subtree_count,
                   estimated_subtree_size=node_data.estimated_subtree_size)
     
     # Add edges
-    for node_id, node_data in nodes.items():
+    for node_id, node_data in tree_nodes.items():
         if node_data.parent_id is not None:
             G.add_edge(node_data.parent_id, node_id)
     
     return G
 
-def calculate_node_positions(G, nodes):
+
+def compute_layout_positions(G, tree_nodes):
     """Calculate positions for nodes respecting branch directions (- left, + right) with overlap prevention."""
     # Try graphviz first if available
     try:
@@ -158,7 +187,7 @@ def calculate_node_positions(G, nodes):
     
     # Custom layout that respects branch directions
     levels = defaultdict(list)
-    for node_id, node_data in nodes.items():
+    for node_id, node_data in tree_nodes.items():
         levels[node_data.level].append(node_id)
     
     pos = {}
@@ -181,7 +210,7 @@ def calculate_node_positions(G, nodes):
         # Group nodes by their parent
         parent_groups = defaultdict(list)
         for node_id in level_nodes:
-            parent_id = nodes[node_id].parent_id
+            parent_id = tree_nodes[node_id].parent_id
             parent_groups[parent_id].append(node_id)
         
         # Process each parent group separately (keeps siblings together)
@@ -203,7 +232,7 @@ def calculate_node_positions(G, nodes):
             right_children = [] # + branches
             
             for child_id in children:
-                child_node = nodes[child_id]
+                child_node = tree_nodes[child_id]
                 # Get the last branch direction (the one that led to this node)
                 if hasattr(child_node, 'branches') and child_node.branches:
                     # Get the last (most recent) branch direction
@@ -273,7 +302,8 @@ def calculate_node_positions(G, nodes):
     
     return pos
 
-def calculate_estimation_quality(nodes):
+
+def calculate_estimation_quality(tree_nodes):
     """Calculate estimation quality statistics, both including and excluding nodes with real=1."""
     # All nodes statistics
     all_good = 0
@@ -287,36 +317,36 @@ def calculate_estimation_quality(nodes):
     excl_under = 0
     excl_inf = 0
     
-    for node in nodes.values():
-        real_count = node.subtree_count
-        est_size = node.estimated_subtree_size
+    for node in tree_nodes.values():
+        actual_count = node.subtree_count
+        estimated_size = node.estimated_subtree_size
         
-        if est_size == float('inf'):
+        if estimated_size == float('inf'):
             all_inf += 1
-            if real_count > 1:
+            if actual_count > 1:
                 excl_inf += 1
         else:
-            ratio = est_size / max(real_count, 1)
+            ratio = estimated_size / max(actual_count, 1)
             
             # Categorize estimation quality
-            if 0.5 <= ratio <= 2:
+            if GOOD_ESTIMATE_RANGE[0] <= ratio <= GOOD_ESTIMATE_RANGE[1]:
                 all_good += 1
-                if real_count > 1:
+                if actual_count > 1:
                     excl_good += 1
-            elif ratio > 2:
+            elif ratio > GOOD_ESTIMATE_RANGE[1]:
                 all_over += 1
-                if real_count > 1:
+                if actual_count > 1:
                     excl_over += 1
             else:
                 all_under += 1
-                if real_count > 1:
+                if actual_count > 1:
                     excl_under += 1
     
     # Calculate totals
-    all_total = len(nodes)
+    all_total = len(tree_nodes)
     all_finite = all_total - all_inf
     
-    excl_total = sum(1 for node in nodes.values() if node.subtree_count > 1)
+    excl_total = sum(1 for node in tree_nodes.values() if node.subtree_count > 1)
     excl_finite = excl_total - excl_inf
     
     return {
@@ -338,70 +368,73 @@ def calculate_estimation_quality(nodes):
         }
     }
 
-def get_node_colors_and_sizes(nodes):
+
+def determine_node_appearance(tree_nodes):
     """Calculate node colors and sizes based on subtree counts and estimates."""
     # Get ranges for normalization
-    real_counts = [node.subtree_count for node in nodes.values()]
-    max_real = max(real_counts) if real_counts else 1
+    actual_counts = [node.subtree_count for node in tree_nodes.values()]
+    max_actual = max(actual_counts) if actual_counts else 1
     
     colors = []
     sizes = []
     
     # Process nodes in sorted order by node_id to match node_list
-    for node_id in sorted(nodes.keys()):
-        node_data = nodes[node_id]
+    for node_id in sorted(tree_nodes.keys()):
+        node_data = tree_nodes[node_id]
         
         # Color based on ratio of estimated to real
         if node_data.estimated_subtree_size == float('inf'):
             colors.append('red')
         else:
             ratio = node_data.estimated_subtree_size / max(node_data.subtree_count, 1)
-            if ratio > 2:
+            if ratio > GOOD_ESTIMATE_RANGE[1]:
                 colors.append('orange')  # Over-estimated
-            elif ratio < 0.5:
+            elif ratio < GOOD_ESTIMATE_RANGE[0]:
                 colors.append('lightblue')  # Under-estimated
             else:
                 colors.append('lightgreen')  # Good estimate
         
         # Size based on real subtree count
-        normalized_size = (node_data.subtree_count / max_real) * 800 + 200
+        normalized_size = (node_data.subtree_count / max_actual) * NODE_SIZE_SCALE + NODE_SIZE_BASE
         sizes.append(normalized_size)
     
     return colors, sizes
 
-def create_node_labels(nodes):
+
+def generate_node_labels(tree_nodes):
     """Create compact labels with real and est on separate lines, hide trivial (1, 1.0) nodes."""
     labels = {}
     
-    for node_id, node_data in nodes.items():
-        real_count = node_data.subtree_count
+    for node_id, node_data in tree_nodes.items():
+        actual_count = node_data.subtree_count
         
         if node_data.estimated_subtree_size == float('inf'):
             est_str = "∞"
             # Always show infinite estimates
-            labels[node_id] = f"{real_count}\n{est_str}"
+            labels[node_id] = f"{actual_count}\n{est_str}"
         else:
-            est_size = node_data.estimated_subtree_size
+            estimated_size = node_data.estimated_subtree_size
             
             # Hide labels for trivial nodes: real=1 and est≈1.0
-            if real_count == 1 and abs(est_size - 1.0) < 0.1:
+            if actual_count == 1 and abs(estimated_size - 1.0) < 0.1:
                 labels[node_id] = ""  # Empty label (node will still be visible)
             else:
-                est_str = f"{est_size:.1f}"
-                labels[node_id] = f"{real_count}\n{est_str}"
+                est_str = f"{estimated_size:.1f}"
+                labels[node_id] = f"{actual_count}\n{est_str}"
     
     return labels
 
-def add_level_statistics_to_plot(nodes, pos):
+
+def add_level_stats(tree_nodes, pos, ax):
     """Add level-wise statistics text to the plot."""
-    level_stats = calculate_level_statistics(nodes)
+    level_stats = calculate_level_statistics(tree_nodes)
     
     if not level_stats:
         return
     
     # Find the position range for each level
     levels = defaultdict(list)
-    for node_id, node_data in nodes.items():
+    for node_id, node_data in tree_nodes.items():
         if node_id in pos:
             levels[node_data.level].append(pos[node_id])
     
@@ -431,40 +464,50 @@ def add_level_statistics_to_plot(nodes, pos):
             
             # Position text to the right of the level
             text_x = max_x + 2.0
-            plt.text(text_x, level_y, stats_text, 
-                    fontsize=9, fontweight='bold',
-                    verticalalignment='center', horizontalalignment='left',
-                    bbox=dict(boxstyle="round,pad=0.3", facecolor="lightcyan", alpha=0.8),
-                    family='monospace')
+            ax.text(text_x, level_y, stats_text, 
+                   fontsize=9, fontweight='bold',
+                   verticalalignment='center', horizontalalignment='left',
+                   bbox=dict(boxstyle="round,pad=0.3", facecolor="lightcyan", alpha=0.8),
+                   family='monospace')
 
-def visualize_tree(file_path, output_dir=None, show_plot=True):
-    """Main function to visualize tree structure."""
+
+def create_tree_plot(file_path, output_dir=None, show_plot=True):
+    """
+    Main function to visualize tree structure.
     
+    Args:
+        file_path (str): Path to structured tree file
+        output_dir (str): Directory to save plot (optional)
+        show_plot (bool): Whether to display the plot interactively
+        
+    Returns:
+        dict: Summary statistics about the tree
+    """
     print(f"Processing file: {file_path}")
     
     # Parse the structured tree file
-    nodes, instance_name = parse_structured_tree_file(file_path)
+    tree_nodes, instance_name = load_structured_tree(file_path)
     
-    if not nodes:
+    if not tree_nodes:
         print(f"No nodes found in {file_path}")
-        return
+        return {}
     
-    print(f"Visualizing tree for {instance_name} with {len(nodes)} nodes")
+    print(f"Visualizing tree for {instance_name} with {len(tree_nodes)} nodes")
     
     # Create graph
-    G = create_tree_graph(nodes)
+    G = build_networkx_graph(tree_nodes)
     print(f"Created graph with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
     
     # Calculate layout
-    pos = calculate_node_positions(G, nodes)
+    pos = compute_layout_positions(G, tree_nodes)
     print(f"Calculated positions for {len(pos)} nodes")
     
     # Get colors and sizes
-    colors, sizes = get_node_colors_and_sizes(nodes)
+    colors, sizes = determine_node_appearance(tree_nodes)
     print(f"Generated {len(colors)} colors and {len(sizes)} sizes")
     
     # Create labels
-    labels = create_node_labels(nodes)
+    labels = generate_node_labels(tree_nodes)
     
     # Create the plot
     print("Creating matplotlib figure...")
@@ -476,13 +519,13 @@ def visualize_tree(file_path, output_dir=None, show_plot=True):
                           connectionstyle="arc3,rad=0.1")  # Slight curve for better visibility
     
     # Draw nodes first (background layer)
-    node_list = sorted(nodes.keys())  # Ensure consistent ordering
+    node_list = sorted(tree_nodes.keys())  # Ensure consistent ordering
     nx.draw_networkx_nodes(G, pos, nodelist=node_list, 
                           node_color=colors, node_size=sizes, 
                           alpha=0.9, linewidths=2, edgecolors='black')
     
     # Draw stars for optimal nodes (0% gap)
-    optimal_nodes = [node_id for node_id, node_data in nodes.items() 
+    optimal_nodes = [node_id for node_id, node_data in tree_nodes.items() 
                     if hasattr(node_data, 'gap_percent') and node_data.gap_percent is not None and abs(node_data.gap_percent) < 0.001]
     
     if optimal_nodes:
@@ -504,10 +547,10 @@ def visualize_tree(file_path, output_dir=None, show_plot=True):
                           bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.8))
     
     # Add level-wise statistics to the plot
-    add_level_statistics_to_plot(nodes, pos)
+    add_level_stats(tree_nodes, pos, plt.gca())
     
     # Calculate and display estimation quality in top-right corner
-    quality_stats = calculate_estimation_quality(nodes)
+    quality_stats = calculate_estimation_quality(tree_nodes)
     
     # Create text for estimation quality
     all_stats = quality_stats['all']
@@ -532,15 +575,7 @@ def visualize_tree(file_path, output_dir=None, show_plot=True):
                 family='monospace')
     
     # Create legend including optimal node marker
-    legend_elements = [
-        mpatches.Patch(color='lightgreen', label='Good Estimate (0.5x ≤ Est/Real ≤ 2x)'),
-        mpatches.Patch(color='orange', label='Over-estimated (Est/Real > 2x)'),
-        mpatches.Patch(color='lightblue', label='Under-estimated (Est/Real < 0.5x)'),
-        mpatches.Patch(color='red', label='Infinite Estimate'),
-        plt.Line2D([0], [0], marker='*', color='w', markerfacecolor='gold', 
-                  markeredgecolor='darkorange', markersize=12, label='Optimal Node (0% gap)')
-    ]
-    
+    legend_elements = create_legend_elements()
     plt.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
     
     # Set title and formatting
@@ -568,31 +603,55 @@ def visualize_tree(file_path, output_dir=None, show_plot=True):
         plt.show()
     else:
         print("Skipping plot display (show_plot=False)")
+        plt.close()
     
     # Print summary statistics
-    print_tree_statistics(nodes, instance_name)
+    print_tree_statistics(tree_nodes, instance_name)
+    
+    # Return summary statistics
+    return {
+        'instance_name': instance_name,
+        'total_nodes': len(tree_nodes),
+        'optimal_nodes': len(optimal_nodes),
+        'quality_stats': quality_stats,
+        'level_stats': calculate_level_statistics(tree_nodes)
+    }
 
-def print_tree_statistics(nodes, instance_name):
+
+def create_legend_elements():
+    """Create legend elements for the tree visualization."""
+    legend_elements = [
+        mpatches.Patch(color='lightgreen', label=f'Good Estimate ({GOOD_ESTIMATE_RANGE[0]}x ≤ Est/Real ≤ {GOOD_ESTIMATE_RANGE[1]}x)'),
+        mpatches.Patch(color='orange', label=f'Over-estimated (Est/Real > {GOOD_ESTIMATE_RANGE[1]}x)'),
+        mpatches.Patch(color='lightblue', label=f'Under-estimated (Est/Real < {GOOD_ESTIMATE_RANGE[0]}x)'),
+        mpatches.Patch(color='red', label='Infinite Estimate'),
+        plt.Line2D([0], [0], marker='*', color='w', markerfacecolor='gold', 
+                  markeredgecolor='darkorange', markersize=12, label='Optimal Node (0% gap)')
+    ]
+    return legend_elements
+
+
+def print_tree_statistics(tree_nodes, instance_name):
     """Print summary statistics about the tree."""
     print(f"\n--- Tree Statistics for {instance_name} ---")
     
-    real_counts = [node.subtree_count for node in nodes.values()]
-    est_counts = [node.estimated_subtree_size for node in nodes.values() 
+    actual_counts = [node.subtree_count for node in tree_nodes.values()]
+    est_counts = [node.estimated_subtree_size for node in tree_nodes.values() 
                  if node.estimated_subtree_size != float('inf')]
     
     # Count optimal nodes
-    optimal_count = sum(1 for node in nodes.values() 
+    optimal_count = sum(1 for node in tree_nodes.values() 
                        if hasattr(node, 'gap_percent') and node.gap_percent is not None and abs(node.gap_percent) < 0.001)
     
-    print(f"Total nodes: {len(nodes)}")
+    print(f"Total nodes: {len(tree_nodes)}")
     print(f"Optimal nodes (0% gap): {optimal_count}")
-    print(f"Real subtree counts - Min: {min(real_counts)}, Max: {max(real_counts)}, Avg: {np.mean(real_counts):.1f}")
+    print(f"Real subtree counts - Min: {min(actual_counts)}, Max: {max(actual_counts)}, Avg: {np.mean(actual_counts):.1f}")
     
     if est_counts:
         print(f"Estimated subtree sizes - Min: {min(est_counts):.1f}, Max: {max(est_counts):.1f}, Avg: {np.mean(est_counts):.1f}")
     
     # Print detailed quality statistics
-    quality_stats = calculate_estimation_quality(nodes)
+    quality_stats = calculate_estimation_quality(tree_nodes)
     all_stats = quality_stats['all']
     excl_stats = quality_stats['excluding_real_1']
     
@@ -611,7 +670,7 @@ def print_tree_statistics(nodes, instance_name):
         print(f"  Under-estimates: {excl_stats['under']} ({excl_stats['under']/excl_stats['finite']*100:.1f}%)")
     
     # Print level-wise statistics
-    level_stats = calculate_level_statistics(nodes)
+    level_stats = calculate_level_statistics(tree_nodes)
     if level_stats:
         print(f"\nLevel-wise estimation quality (excluding real=1 nodes):")
         for level in sorted(level_stats.keys()):
@@ -626,38 +685,101 @@ def print_tree_statistics(nodes, instance_name):
                     else:
                         print()
 
-def main():
-    parser = argparse.ArgumentParser(description='Visualize tree structure from structured tree files')
-    parser.add_argument('input_path', help='Path to structured tree file or directory')
-    parser.add_argument('--output-dir', '-o', help='Output directory for saving plots')
-    parser.add_argument('--no-show', action='store_true', help='Do not display plots interactively')
+
+def process_multiple_tree_files(input_path, output_dir=None, show_plots=False):
+    """
+    Process multiple structured tree files for visualization.
     
-    args = parser.parse_args()
-    
-    input_path = Path(args.input_path)
+    Args:
+        input_path (str or Path): Path to file or directory containing structured tree files
+        output_dir (str): Directory to save plots (optional)
+        show_plots (bool): Whether to display plots interactively
+        
+    Returns:
+        list: List of summary statistics for each processed file
+    """
+    input_path = Path(input_path)
+    results = []
     
     if input_path.is_file():
         # Single file
-        visualize_tree(str(input_path), args.output_dir, not args.no_show)
+        stats = create_tree_plot(str(input_path), output_dir, show_plots)
+        results.append(stats)
     elif input_path.is_dir():
         # Directory - process all structured tree files
         tree_files = list(input_path.glob("structured_tree_*.txt"))
         
         if not tree_files:
             print(f"No structured_tree_*.txt files found in {input_path}")
-            return
+            return results
         
         print(f"Found {len(tree_files)} structured tree files")
         
         for file_path in sorted(tree_files):
             print(f"\nProcessing: {file_path.name}")
-            visualize_tree(str(file_path), args.output_dir, False)  # Don't show individual plots
+            stats = create_tree_plot(str(file_path), output_dir, False)  # Don't show individual plots
+            results.append(stats)
         
         print(f"\nProcessed {len(tree_files)} files")
-        if args.output_dir:
-            print(f"All visualizations saved to: {args.output_dir}")
+        if output_dir:
+            print(f"All visualizations saved to: {output_dir}")
     else:
         print(f"Invalid path: {input_path}")
+    
+    return results
+
+
+def main():
+    """Main function with command line interface."""
+    parser = argparse.ArgumentParser(
+        description='Visualize tree structure from structured tree files',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python3 visualize_tree.py structured_tree_file.txt
+  python3 visualize_tree.py structured_trees/ --output-dir plots/ 
+  python3 visualize_tree.py structured_tree_file.txt --no-show
+        """
+    )
+    
+    parser.add_argument('input_path', help='Path to structured tree file or directory')
+    parser.add_argument('--output-dir', '-o', help='Output directory for saving plots')
+    parser.add_argument('--no-show', action='store_true', help='Do not display plots interactively')
+    
+    args = parser.parse_args()
+    
+    # Process the files
+    results = process_multiple_tree_files(
+        input_path=args.input_path,
+        output_dir=args.output_dir,
+        show_plots=not args.no_show
+    )
+    
+    # Print overall summary
+    if len(results) > 1:
+        print(f"\n{'='*80}")
+        print("OVERALL SUMMARY")
+        print(f"{'='*80}")
+        print(f"Processed {len(results)} tree files")
+        
+        total_nodes = sum(r.get('total_nodes', 0) for r in results)
+        total_optimal = sum(r.get('optimal_nodes', 0) for r in results)
+        
+        print(f"Total nodes across all trees: {total_nodes}")
+        print(f"Total optimal nodes: {total_optimal}")
+        
+        if results:
+            avg_quality = []
+            for r in results:
+                quality = r.get('quality_stats', {})
+                excl_stats = quality.get('excluding_real_1', {})
+                if excl_stats.get('finite', 0) > 0:
+                    ratio = excl_stats['good'] / excl_stats['finite']
+                    avg_quality.append(ratio)
+            
+            if avg_quality:
+                print(f"Average good estimate ratio: {np.mean(avg_quality):.3f}")
+
 
 if __name__ == "__main__":
     main()
