@@ -189,7 +189,7 @@ if problem_type == "VRPs":
 
                 complex_plot_path = os.path.join("temp/", "complex_tree.png")
                 plot_complex(tree, save_path=complex_plot_path, show_plot=False)
-                st.image(complex_plot_path, caption="🔍 Complex B&B Tree", use_container_width=True)
+                st.image(complex_plot_path, caption="🔍 Detailed B&B Tree", use_container_width=True)
 
             # st.image(simple_plot_path, caption="Branch-and-Bound Tree", use_container_width=True)
 
