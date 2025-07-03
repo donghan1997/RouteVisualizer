@@ -43,7 +43,7 @@ if problem_type == "VRPs":
         x, y = zip(*xy_coords)
 
     else:
-        st.info("Please upload a JSON file to begin.")
+        st.info("Please upload a JSON and TXT files to begin.")
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "0. Integrated View",
