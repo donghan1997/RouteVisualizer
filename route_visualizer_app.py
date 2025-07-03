@@ -1,8 +1,10 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import json
-# from RouteVisualizer.core.simple_bbt import analyze_tree
+from tree_analysis_unified import getTree, plot_simple, plot_complex
 import os
+import contextlib
+import io
 
 st.set_page_config(layout="wide", page_title="CombiView")
 
@@ -18,7 +20,14 @@ if problem_type == "VRPs":
     st.header("Route Visualizer for CVRP")
 
 
-    uploaded_file = st.file_uploader("Upload CVRP Route JSON File", type="json")
+    # uploaded_file = st.file_uploader("Upload CVRP Route JSON File", type="json")
+
+    # bbt_file = st.file_uploader("Upload Branch-and-Bound Output File", type="txt")
+
+    files = st.file_uploader("Upload JSON and TXT Files", type=["json", "txt"], accept_multiple_files=True)
+    uploaded_file = next((f for f in files if f.name.endswith('.json')), None)
+    bbt_file = next((f for f in files if f.name.endswith('.txt')), None)
+
 
     if uploaded_file is not None:
         # 加载 JSON 数据
@@ -78,7 +87,23 @@ if problem_type == "VRPs":
 
         with col2:
             st.markdown("### Branch-and-Bound Tree")
-            # draw_bnb_tree()
+
+            if bbt_file is not None:
+                temp_path = os.path.join("temp", bbt_file.name)
+                os.makedirs("temp", exist_ok=True)
+                with open(temp_path, "wb") as f:
+                    f.write(bbt_file.getvalue())
+
+                # st.info("Analyzing branch-and-bound tree...")
+                with contextlib.redirect_stdout(io.StringIO()):
+                    tree = getTree(temp_path, debug=False, keep_intermediates=False, streamlit_container=None)
+                    simple_plot_path = os.path.join("temp/", "simple_tree.png")
+                    stats = plot_simple(tree, save_path=simple_plot_path, show_plot=False, figure_size=(5,5))
+
+
+                st.image(simple_plot_path, use_container_width=True)
+            
+
 
         with col3:
             st.markdown("### Fairness-based Routes")
@@ -110,7 +135,7 @@ if problem_type == "VRPs":
     with tab2:
         
         st.subheader("Standard CVRP Path")
-        st.write("Visualize the optimal route for the standard CVRP problem.")
+        st.write("Visualize the optimal routes for the standard CVRP problem.")
         
         if uploaded_file:
             # 示例图
@@ -144,7 +169,6 @@ if problem_type == "VRPs":
         st.info("This section displays the branch-and-bound tree structure.")
         # 示例图像
         # 上传 B&B 输出文件
-        bbt_file = st.file_uploader("Upload Branch-and-Bound Output File", type="txt")
 
         if bbt_file is not None:
             # 保存上传文件到临时路径
@@ -155,17 +179,22 @@ if problem_type == "VRPs":
 
             # 分析并保存图像
             st.info("Analyzing branch-and-bound tree...")
-            pic_path = analyze_tree(temp_path, save_pic=True)
-            print(f"Tree image saved to: {pic_path}")
-            # 显示图像
-            # if os.path.exists(pic_path):
-            #     st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
-            # else:
-            #     st.error("Tree image not found.")
-            #try:
-            st.image(pic_path, caption="Branch-and-Bound Tree", use_container_width=True)
-            #except Exception as e:
-                #st.error(f"Failed to display image: {e}")
+
+            tree = getTree(temp_path, debug=False, keep_intermediates=False, streamlit_container=st)
+            simple_plot_path = os.path.join("temp/", "simple_tree.png")
+            plot_simple(tree, save_path=simple_plot_path, show_plot=False)
+            st.image(simple_plot_path, caption="🧩 Simple B&B Tree", use_container_width=True)
+
+            if st.checkbox("Detailed Tree Visualization", value=False):
+
+                complex_plot_path = os.path.join("temp/", "complex_tree.png")
+                plot_complex(tree, save_path=complex_plot_path, show_plot=False)
+                st.image(complex_plot_path, caption="🔍 Complex B&B Tree", use_container_width=True)
+
+            # st.image(simple_plot_path, caption="Branch-and-Bound Tree", use_container_width=True)
+
+            # st.image(complex_plot_path, caption="Branch-and-Bound Tree", use_container_width=True)
+
         else:
             st.info("Please upload a B&B output file (e.g., .txt format).")
 

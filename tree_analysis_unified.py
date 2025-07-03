@@ -184,80 +184,80 @@ def getTree(log_file, debug=False, keep_intermediates=False, streamlit_container
     
     temp_files = []
     
-    try:
+    # try:
         # Stage 1: Extract tree data
-        log_message("📤 Stage 1: Extracting tree data...", streamlit_container=streamlit_container)
-        instance_name = get_instance_name(log_file)
-        tree_sections = extract_tree_sections(log_file, debug=debug)
-        
-        if not tree_sections:
-            raise ValueError(f"No tree data found in {log_file}")
-        
-        log_message(f"Found {len(tree_sections)} tree sections", 
-                   streamlit_container=streamlit_container)
-        
-        # Create temporary tree detail file
-        temp_dir = tempfile.mkdtemp(prefix="tree_analysis_")
-        tree_filename = create_output_filename(instance_name)
-        tree_detail_path = os.path.join(temp_dir, tree_filename)
-        temp_files.append(tree_detail_path)
-        
-        tree_output = format_tree_report(tree_sections, instance_name)
-        with open(tree_detail_path, 'w', encoding='utf-8') as f:
-            f.write(tree_output)
-        
-        # Stage 2: Build structured tree
-        log_message("🏗️  Stage 2: Building tree structure...", 
-                   streamlit_container=streamlit_container)
-        tree_nodes_raw = load_tree_data(tree_detail_path)
-        
-        if not tree_nodes_raw:
-            raise ValueError(f"No nodes found in tree detail file")
-        
-        root = create_tree_hierarchy(tree_nodes_raw)
-        if not root:
-            raise ValueError(f"Could not build tree structure")
-        
-        level_sorted_nodes = sort_nodes_by_level(root)
-        log_message(f"Built tree with {len(level_sorted_nodes)} nodes", 
-                   streamlit_container=streamlit_container)
-        
-        # Create temporary structured tree file
-        structured_filename = f"structured_tree_{instance_name}.txt"
-        structured_tree_path = os.path.join(temp_dir, structured_filename)
-        temp_files.append(structured_tree_path)
-        
-        structured_output = create_structured_report(level_sorted_nodes, instance_name)
-        with open(structured_tree_path, 'w', encoding='utf-8') as f:
-            f.write(structured_output)
-        
-        # Load the final tree structure
-        tree_nodes, _ = load_structured_tree(structured_tree_path)
-        
-        if not tree_nodes:
-            raise ValueError("Failed to load structured tree")
-        
-        log_message(f"Tree extraction completed: {len(tree_nodes)} nodes", 
-                   "success", streamlit_container)
-        
-        # Create TreeData object
-        if keep_intermediates:
-            log_message(f"Intermediate files kept in: {temp_dir}", 
-                       streamlit_container=streamlit_container)
-            return TreeData(tree_nodes, instance_name, [])
-        else:
-            return TreeData(tree_nodes, instance_name, temp_files + [temp_dir])
+    log_message("📤 Stage 1: Extracting tree data...", streamlit_container=streamlit_container)
+    instance_name = get_instance_name(log_file)
+    tree_sections = extract_tree_sections(log_file, debug=debug)
+    
+    if not tree_sections:
+        raise ValueError(f"No tree data found in {log_file}")
+    
+    log_message(f"Found {len(tree_sections)} tree sections", 
+                streamlit_container=streamlit_container)
+    
+    # Create temporary tree detail file
+    temp_dir = tempfile.mkdtemp(prefix="tree_analysis_")
+    tree_filename = create_output_filename(instance_name)
+    tree_detail_path = os.path.join(temp_dir, tree_filename)
+    temp_files.append(tree_detail_path)
+    
+    tree_output = format_tree_report(tree_sections, instance_name)
+    with open(tree_detail_path, 'w', encoding='utf-8') as f:
+        f.write(tree_output)
+    
+    # Stage 2: Build structured tree
+    log_message("🏗️  Stage 2: Building tree structure...", 
+                streamlit_container=streamlit_container)
+    tree_nodes_raw = load_tree_data(tree_detail_path)
+    
+    if not tree_nodes_raw:
+        raise ValueError(f"No nodes found in tree detail file")
+    
+    root = create_tree_hierarchy(tree_nodes_raw)
+    if not root:
+        raise ValueError(f"Could not build tree structure")
+    
+    level_sorted_nodes = sort_nodes_by_level(root)
+    log_message(f"Built tree with {len(level_sorted_nodes)} nodes", 
+                streamlit_container=streamlit_container)
+    
+    # Create temporary structured tree file
+    structured_filename = f"structured_tree_{instance_name}.txt"
+    structured_tree_path = os.path.join(temp_dir, structured_filename)
+    temp_files.append(structured_tree_path)
+    
+    structured_output = create_structured_report(level_sorted_nodes, instance_name)
+    with open(structured_tree_path, 'w', encoding='utf-8') as f:
+        f.write(structured_output)
+    
+    # Load the final tree structure
+    tree_nodes, _ = load_structured_tree(structured_tree_path)
+    
+    if not tree_nodes:
+        raise ValueError("Failed to load structured tree")
+    
+    log_message(f"Tree extraction completed: {len(tree_nodes)} nodes", 
+                "success", streamlit_container)
+    
+    # Create TreeData object
+    if keep_intermediates:
+        log_message(f"Intermediate files kept in: {temp_dir}", 
+                    streamlit_container=streamlit_container)
+        return TreeData(tree_nodes, instance_name, [])
+    else:
+        return TreeData(tree_nodes, instance_name, temp_files + [temp_dir])
             
-    except Exception as e:
-        # Clean up on error
-        for temp_file in temp_files:
-            try:
-                if os.path.exists(temp_file):
-                    os.remove(temp_file)
-            except:
-                pass
-        log_message(f"Error during tree extraction: {e}", "error", streamlit_container)
-        raise e
+    # except Exception as e:
+    #     # Clean up on error
+    #     for temp_file in temp_files:
+    #         try:
+    #             if os.path.exists(temp_file):
+    #                 os.remove(temp_file)
+    #         except:
+    #             pass
+    #     log_message(f"Error during tree extraction: {e}", "error", streamlit_container)
+    #     raise e
 
 
 def plot_complex(tree, save_path=None, show_plot=True, figure_size=None, 
