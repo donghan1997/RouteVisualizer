@@ -1,0 +1,13 @@
+[theme]
+base = "light"
+
+[server]
+enableStaticServing = true
+
+[client]
+showSidebarNavigation = false
+
+[menuItems]
+getHelp = null
+reportBug = null
+about = null
