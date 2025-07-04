@@ -6,7 +6,16 @@ import os
 import contextlib
 import io
 
-st.set_page_config(layout="wide", page_title="CombiView")
+st.set_page_config(
+    page_title="CombiView",
+    layout="wide",
+    menu_items={
+        "Get Help": None,
+        "Report a bug": None,
+        "About": None
+    }
+)
+
 
 st.title("CombiView")
 st.caption("A Visual Toolkit for Combinatorial Optimization Problems")
@@ -30,7 +39,7 @@ selected = st.sidebar.radio(
 if selected == "VRPs":
     st.header("Route Visualizer for CVRP")
 
-    files = st.file_uploader("Upload your JSON and TXT Files", type=["json", "txt"], accept_multiple_files=True)
+    files = st.file_uploader("Upload your route & tree files", type=["json", "txt"], accept_multiple_files=True)
     uploaded_file = next((f for f in files if f.name.endswith('.json')), None)
     bbt_file = next((f for f in files if f.name.endswith('.txt')), None)
 
