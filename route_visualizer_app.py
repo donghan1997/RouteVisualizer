@@ -16,6 +16,18 @@ st.set_page_config(
     }
 )
 
+hide_menu_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stActionButtonIcon {display: none;}
+    .st-emotion-cache-1avcm0n.e1tzin5v3 {display: none;} /* Hide GitHub icon (may vary by version) */
+    </style>
+"""
+st.markdown(hide_menu_style, unsafe_allow_html=True)
+
+
 
 st.title("CombiView")
 st.caption("A Visual Toolkit for Combinatorial Optimization Problems")
