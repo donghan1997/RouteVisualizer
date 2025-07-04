@@ -11,39 +11,63 @@ st.set_page_config(layout="wide", page_title="CombiView")
 st.title("CombiView")
 st.caption("A Visual Toolkit for Combinatorial Optimization Problems")
 
-problem_type = st.sidebar.selectbox(
+# problem_type = st.sidebar.selectbox(
+#     "Select Problem Type",
+#     ["VRPs", "Crew Scheduling(Coming Soon)", "Facility Location(Coming Soon)"]
+# )
+problem_options_raw = [
+    "VRPs",
+    "Crew Scheduling (Coming Soon)",
+    "Facility Location (Coming Soon)"
+]
+
+# Sidebar radio selector
+selected = st.sidebar.radio(
     "Select Problem Type",
-    ["VRPs", "Crew Scheduling(Coming Soon)", "Facility Location(Coming Soon)"]
+    options=problem_options_raw,
 )
 
-if problem_type == "VRPs":
+if selected == "VRPs":
     st.header("Route Visualizer for CVRP")
 
-
-    # uploaded_file = st.file_uploader("Upload CVRP Route JSON File", type="json")
-
-    # bbt_file = st.file_uploader("Upload Branch-and-Bound Output File", type="txt")
-
-    files = st.file_uploader("Upload JSON and TXT Files", type=["json", "txt"], accept_multiple_files=True)
+    files = st.file_uploader("Upload your JSON and TXT Files", type=["json", "txt"], accept_multiple_files=True)
     uploaded_file = next((f for f in files if f.name.endswith('.json')), None)
     bbt_file = next((f for f in files if f.name.endswith('.txt')), None)
 
 
     if uploaded_file is not None:
-        # 加载 JSON 数据
         data = json.load(uploaded_file)
-
-        # 解析数据字段
-        coordinates = data.get("nodes", [])
-        standard_routes = data.get("standard", [])
-        minmax_routes = data.get("minmax", [])
-        range_routes = data.get("range", [])
-
-        xy_coords = [(pt['x'], pt['y']) for pt in coordinates]
-        x, y = zip(*xy_coords)
-
+        data_available = True
     else:
-        st.info("Please upload a JSON and TXT files to begin.")
+        # st.info("No JSON uploaded, using example data.")
+        with open("example/example.json") as f:
+            data = json.load(f)
+        data_available = True
+        # st.info("Using built-in example data.")
+
+    if bbt_file is not None:
+        temp_path = os.path.join("temp", bbt_file.name)
+        os.makedirs("temp", exist_ok=True)
+        with open(temp_path, "wb") as f:
+            f.write(bbt_file.getvalue())
+        bbt_available = True
+    else:
+        default_bbt_path = "example/example_bbt.txt"
+        if os.path.exists(default_bbt_path):
+            temp_path = default_bbt_path
+            bbt_available = True
+            # st.info("Using built-in example branch-and-bound file.")
+
+
+
+            # 解析数据字段
+    coordinates = data.get("nodes", [])
+    standard_routes = data.get("standard", [])
+    minmax_routes = data.get("minmax", [])
+    range_routes = data.get("range", [])
+
+    xy_coords = [(pt['x'], pt['y']) for pt in coordinates]
+    x, y = zip(*xy_coords)
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "0. Integrated View",
@@ -61,7 +85,7 @@ if problem_type == "VRPs":
         with col1:
             st.markdown("### Standard Routes")
 
-            if uploaded_file:
+            if data_available:
             # 示例图
                 fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -88,11 +112,7 @@ if problem_type == "VRPs":
         with col2:
             st.markdown("### Branch-and-Bound Tree")
 
-            if bbt_file is not None:
-                temp_path = os.path.join("temp", bbt_file.name)
-                os.makedirs("temp", exist_ok=True)
-                with open(temp_path, "wb") as f:
-                    f.write(bbt_file.getvalue())
+            if bbt_available:
 
                 # st.info("Analyzing branch-and-bound tree...")
                 with contextlib.redirect_stdout(io.StringIO()):
@@ -108,7 +128,7 @@ if problem_type == "VRPs":
         with col3:
             st.markdown("### Fairness-based Routes")
 
-            if uploaded_file:
+            if data_available:
                 fig2, ax2 = plt.subplots(figsize=(6, 6))
                 ax2.scatter(x, y, color='black', s=15)
 
@@ -137,7 +157,7 @@ if problem_type == "VRPs":
         st.subheader("Standard CVRP Path")
         st.write("Visualize the optimal routes for the standard CVRP problem.")
         
-        if uploaded_file:
+        if data_available:
             # 示例图
             fig, ax = plt.subplots(figsize=(8, 8))
 
@@ -170,12 +190,12 @@ if problem_type == "VRPs":
         # 示例图像
         # 上传 B&B 输出文件
 
-        if bbt_file is not None:
+        if bbt_available:
             # 保存上传文件到临时路径
-            temp_path = os.path.join("temp", bbt_file.name)
-            os.makedirs("temp", exist_ok=True)
-            with open(temp_path, "wb") as f:
-                f.write(bbt_file.getvalue())
+            # temp_path = os.path.join("temp", bbt_file.name)
+            # os.makedirs("temp", exist_ok=True)
+            # with open(temp_path, "wb") as f:
+            #     f.write(bbt_file.getvalue())
 
             # 分析并保存图像
             st.info("Analyzing branch-and-bound tree...")
@@ -212,7 +232,7 @@ if problem_type == "VRPs":
         # 示例：定义标准路径
 
 
-        if uploaded_file:
+        if data_available:
             col1, col2 = st.columns([1, 1])
 
 
